@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  
+
   Camera,
   MapPin,
   Wrench,
@@ -232,13 +232,13 @@ const SHOPS = [
 ];
 
 const DIY_ITEMS = [
-  { id: 'washer', name: '워셔액 보충', pos: { top: '30%', left: '25%' }, desc: '보닛을 열고 파란색 뚜껑을 찾아 워셔액을 가득 채우세요.' },
-  { id: 'filter', name: '에어컨 필터 교체', pos: { top: '50%', left: '70%' }, desc: '조수석 글로브 박스를 열고 안쪽 덮개를 제거해 필터를 교체하세요.' },
-  { id: 'coolant', name: '냉각수 보충', pos: { top: '25%', left: '65%' }, desc: '엔진이 식은 후 냉각수 보조 탱크의 MAX 선까지 보충하세요.' },
-  { id: 'headlight', name: '전조등 교체', pos: { top: '20%', left: '15%' }, desc: '엔진룸 안쪽 전조등 소켓을 돌려 빼고 새 전구로 교체하세요.' },
-  { id: 'taillight', name: '후미등 교체', pos: { top: '85%', left: '15%' }, desc: '트렁크 안쪽 커버를 열고 소켓을 분리해 전구를 교체하세요.' },
-  { id: 'brake_light', name: '브레이크등 교체', pos: { top: '82%', left: '30%' }, desc: '후미등 뭉치를 분리하여 브레이크 전용 전구를 교체하세요.' },
-  { id: 'plate_light', name: '번호판등 교체', pos: { top: '88%', left: '50%' }, desc: '드라이버로 번호판 상단 커버를 열고 작은 전구를 교체하세요.' },
+  { id: 'washer', name: '워셔액 보충', level: '초급', pos: { top: '30%', left: '25%' }, desc: '보닛을 열고 파란색 뚜껑을 찾아 워셔액을 가득 채우세요.' },
+  { id: 'filter', name: '에어컨 필터 교체', level: '초급', pos: { top: '50%', left: '70%' }, desc: '조수석 글로브 박스를 열고 안쪽 덮개를 제거해 필터를 교체하세요.' },
+  { id: 'coolant', name: '냉각수 보충', level: '초급', pos: { top: '25%', left: '65%' }, desc: '엔진이 식은 후 냉각수 보조 탱크의 MAX 선까지 보충하세요.' },
+  { id: 'headlight', name: '전조등 교체', level: '중급', pos: { top: '20%', left: '15%' }, desc: '엔진룸 안쪽 전조등 소켓을 돌려 빼고 새 전구로 교체하세요.' },
+  { id: 'taillight', name: '후미등 교체', level: '중급', pos: { top: '85%', left: '15%' }, desc: '트렁크 안쪽 커버를 열고 소켓을 분리해 전구를 교체하세요.' },
+  { id: 'brake_light', name: '브레이크등 교체', level: '고급', pos: { top: '82%', left: '30%' }, desc: '후미등 뭉치를 분리하여 브레이크 전용 전구를 교체하세요.' },
+  { id: 'plate_light', name: '번호판등 교체', level: '고급', pos: { top: '88%', left: '50%' }, desc: '드라이버로 번호판 상단 커버를 열고 작은 전구를 교체하세요.' },
 ];
 
 export default function App() {
@@ -248,6 +248,10 @@ export default function App() {
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
+  const [collapsedLevels, setCollapsedLevels] = useState({ '중급': false, '고급': false });
+  const toggleLevel = (level) => {
+    setCollapsedLevels(prev => ({ ...prev, [level]: !prev[level] }));
+  };
 
   // 계기판 촬영 가이드 화면 표시 상태
   const [showPhotoGuide, setShowPhotoGuide] = useState(false);
@@ -816,20 +820,51 @@ export default function App() {
             )}
 
             {diyStep === 3 && (
-              <div className="space-y-4">
-                <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">정비 항목을 선택하세요</label>
-                <div className="space-y-2">
-                  {DIY_ITEMS.map(item => (
-                    <button
-                      key={item.id}
-                      onClick={() => { setSelectedDiy(item); setDiyStep(4); }}
-                      className="w-full p-4 bg-white border-2 border-slate-100 rounded-2xl font-bold flex justify-between items-center hover:bg-blue-50 hover:border-blue-200 transition-all"
-                    >
-                      {item.name}
-                      <ChevronRight className="w-5 h-5 text-slate-300" />
-                    </button>
-                  ))}
-                </div>
+              <div className="space-y-5">
+                <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">
+                  정비 항목을 선택하세요
+                </label>
+                {['초급', '중급', '고급'].map(level => {
+                  const items = DIY_ITEMS.filter(item => item.level === level);
+                  const isCollapsible = level !== '초급';
+                  const isCollapsed = collapsedLevels[level];
+                  const levelColor = {
+                    '초급': 'text-blue-600',
+                    '중급': 'text-amber-500',
+                    '고급': 'text-red-500',
+                  }[level];
+
+                  return (
+                    <div key={level}>
+                      <button
+                        className={`flex items-center gap-2 mb-2 w-full text-left ${isCollapsible ? 'cursor-pointer' : 'cursor-default'}`}
+                        onClick={() => isCollapsible && toggleLevel(level)}
+                      >
+                        <span className={`text-base font-black ${levelColor}`}>{level}</span>
+                        {isCollapsible && (
+                          <ChevronRight
+                            className={`w-4 h-4 ${levelColor} transition-transform ${isCollapsed ? '' : 'rotate-90'}`}
+                          />
+                        )}
+                      </button>
+
+                      {(!isCollapsible || !isCollapsed) && (
+                        <div className="border-2 border-slate-100 rounded-2xl overflow-hidden bg-white">
+                          {items.map((item, idx) => (
+                            <button
+                              key={item.id}
+                              onClick={() => { setSelectedDiy(item); setDiyStep(4); }}
+                              className={`w-full p-4 flex justify-between items-center hover:bg-blue-50 transition-all font-bold text-slate-700 ${idx !== items.length - 1 ? 'border-b border-slate-100' : ''}`}
+                            >
+                              {item.name}
+                              <ChevronRight className="w-5 h-5 text-slate-300" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
 
