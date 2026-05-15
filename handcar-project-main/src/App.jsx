@@ -259,24 +259,17 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
-
     if (file) {
       const reader = new FileReader();
-      
       reader.onloadend = () => {
         setImage(reader.result);
         startAnalysis(file);
       };
       reader.readAsDataURL(file);
     }
-  }
-
-  // 같은 사진을 다시 선택해도 onChange가 다시 실행되도록 input 값을 초기화합니다.
-  e.target.value = '';
-};
+  };
 
   const startAnalysis = async (file) => {
     setAnalyzing(true);
@@ -1117,41 +1110,43 @@ function PhotoGuideScreen({ onClose, onStart, hideGuideForWeek, setHideGuideForW
 
   return (
     <div className="absolute inset-0 z-[999] bg-white flex flex-col">
-      <header className="bg-white px-5 pt-7 pb-5 border-b flex items-center justify-center relative shrink-0">
+      <header className="bg-white px-4 py-4 border-b flex items-center justify-center relative">
         <button
           type="button"
           onClick={onClose}
-          className="absolute left-4 top-7 p-2 rounded-full hover:bg-slate-100"
+          className="absolute left-4 p-2 rounded-full hover:bg-slate-100"
+          aria-label="촬영 가이드 닫기"
         >
-          <ChevronLeft className="w-8 h-8 text-slate-950 stroke-[3]" />
+          <ChevronLeft className="w-7 h-7 text-slate-900" />
         </button>
 
         <div className="text-center">
-          <h1 className="text-[28px] leading-tight font-black tracking-[-0.04em] text-slate-950">
-            계기판 촬영 가이드
-          </h1>
-          <p className="mt-2 text-[15px] font-semibold text-slate-500">
+          <h1 className="text-2xl font-black text-slate-900">계기판 촬영 가이드</h1>
+          <p className="mt-1 text-sm font-medium text-slate-500">
             정확한 분석을 위해 아래 예시를 확인해 주세요
           </p>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-6 pt-7 pb-40 space-y-7">
+      <main className="flex-1 overflow-y-auto p-6 space-y-8 pb-36">
         <section className="space-y-4">
-          <GuideSectionTitle type="success" title="올바른 촬영" />
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center">
+              <CheckCircle className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-xl font-black text-slate-900">올바른 촬영</h2>
+          </div>
 
-          <div className="relative bg-white rounded-[26px] border-2 border-emerald-500 p-3 shadow-[0_14px_35px_rgba(16,185,129,0.12)]">
-            <div className="absolute -top-3 -left-3 w-12 h-12 rounded-full bg-emerald-500 border-4 border-white flex items-center justify-center z-10 shadow-md">
-              <CheckCircle className="w-7 h-7 text-white stroke-[3]" />
+          <div className="relative bg-white rounded-3xl border-2 border-emerald-500 p-3 shadow-lg shadow-emerald-100">
+            <div className="absolute -top-3 -left-3 w-12 h-12 rounded-full bg-emerald-500 border-4 border-white flex items-center justify-center z-10">
+              <CheckCircle className="w-7 h-7 text-white" />
             </div>
 
-            <div className="rounded-[20px] overflow-hidden bg-slate-950">
-              <DashboardSvg mode="correct" />
-            </div>
+            <DashboardMockup type="correct" />
 
-            <div className="mt-3 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center gap-2 px-3">
-              <CheckCircle className="w-6 h-6 text-emerald-500 stroke-[3]" />
-              <p className="text-[15px] font-black text-slate-800 tracking-[-0.03em]">
+            <div className="mt-3 py-3 px-4 rounded-2xl bg-emerald-50 flex items-center justify-center gap-2">
+              <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
+              <p className="text-sm font-black text-slate-800 text-center">
                 계기판 전체가 선명하게, 정면에서 촬영
               </p>
             </div>
@@ -1159,18 +1154,23 @@ function PhotoGuideScreen({ onClose, onStart, hideGuideForWeek, setHideGuideForW
         </section>
 
         <section className="space-y-4">
-          <GuideSectionTitle type="danger" title="피해야 할 촬영" />
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-red-500 flex items-center justify-center">
+              <X className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-xl font-black text-slate-900">피해야 할 촬영</h2>
+          </div>
 
           <div className="grid grid-cols-3 gap-3">
-            <WrongPhotoCard mode="dark" label="너무 어두움" />
-            <WrongPhotoCard mode="blur" label="초점 흐림" />
-            <WrongPhotoCard mode="glare" label="빛 반사" />
+            <WrongPhotoCard type="dark" label="너무 어두움" />
+            <WrongPhotoCard type="blur" label="초점 흐림" />
+            <WrongPhotoCard type="glare" label="빛 반사" />
           </div>
         </section>
 
-        <section className="rounded-[24px] bg-blue-50/80 border border-blue-100 p-5 space-y-3">
-          <div className="flex items-center gap-2 mb-2">
-            <Lightbulb className="w-6 h-6 text-blue-600 stroke-[2.5]" />
+        <section className="rounded-3xl bg-blue-50 border border-blue-100 p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <Lightbulb className="w-6 h-6 text-blue-600" />
             <h2 className="text-lg font-black text-blue-600">촬영 팁</h2>
           </div>
 
@@ -1181,22 +1181,22 @@ function PhotoGuideScreen({ onClose, onStart, hideGuideForWeek, setHideGuideForW
         </section>
       </main>
 
-      <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t px-6 pt-5 pb-6 space-y-4">
+      <div className="absolute bottom-0 left-0 right-0 bg-white border-t p-5 space-y-4">
         <button
           type="button"
           onClick={onStart}
-          className="w-full h-[72px] bg-blue-600 text-white rounded-[24px] font-black shadow-xl shadow-blue-200 active:scale-95 transition-transform text-xl flex items-center justify-center gap-3"
+          className="w-full py-5 bg-blue-600 text-white rounded-3xl font-black shadow-xl shadow-blue-200 active:scale-95 transition-transform text-lg flex items-center justify-center gap-2"
         >
-          <Camera className="w-7 h-7 stroke-[2.5]" />
+          <Camera className="w-6 h-6" />
           사진 촬영 시작
         </button>
 
-        <label className="flex items-center justify-center gap-3 text-slate-500 font-bold text-base">
+        <label className="flex items-center justify-center gap-3 text-slate-500 font-bold">
           <input
             type="checkbox"
             checked={hideGuideForWeek}
             onChange={(e) => handleCheckWeek(e.target.checked)}
-            className="w-7 h-7 accent-blue-600"
+            className="w-6 h-6 accent-blue-600"
           />
           일주일 동안 보지 않기
         </label>
@@ -1205,200 +1205,80 @@ function PhotoGuideScreen({ onClose, onStart, hideGuideForWeek, setHideGuideForW
   );
 }
 
-function GuideSectionTitle({ type, title }) {
-  const isSuccess = type === 'success';
-
+// 실제 사진 대신 계기판 예시를 간단한 UI 도형으로 그리는 컴포넌트입니다.
+function DashboardMockup({ type = 'correct' }) {
   return (
-    <div className="flex items-center gap-3">
-      <div
-        className={`w-10 h-10 rounded-full flex items-center justify-center ${
-          isSuccess ? 'bg-emerald-500' : 'bg-red-500'
-        }`}
-      >
-        {isSuccess ? (
-          <CheckCircle className="w-7 h-7 text-white stroke-[3]" />
-        ) : (
-          <X className="w-7 h-7 text-white stroke-[3]" />
-        )}
-      </div>
-
-      <h2 className="text-[22px] font-black text-slate-950 tracking-[-0.04em]">
-        {title}
-      </h2>
-    </div>
-  );
-}
-
-function DashboardSvg({ mode = 'correct' }) {
-  const isDark = mode === 'dark';
-  const isBlur = mode === 'blur';
-  const isGlare = mode === 'glare';
-
-  return (
-    <svg
-      viewBox="0 0 760 300"
-      className={`w-full h-auto block ${isDark ? 'brightness-[0.28]' : ''} ${isBlur ? 'blur-[3px]' : ''}`}
-      xmlns="http://www.w3.org/2000/svg"
+    <div
+      className={`
+        relative h-44 rounded-2xl bg-slate-950 overflow-hidden flex items-center justify-center
+        ${type === 'dark' ? 'brightness-[0.25]' : ''}
+        ${type === 'blur' ? 'blur-[2px]' : ''}
+      `}
     >
-      <defs>
-        <radialGradient id={`dashBg-${mode}`} cx="50%" cy="40%" r="80%">
-          <stop offset="0%" stopColor="#1e293b" />
-          <stop offset="100%" stopColor="#020617" />
-        </radialGradient>
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-800/50 to-slate-950"></div>
 
-        <linearGradient id={`glare-${mode}`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="rgba(255,255,255,0)" />
-          <stop offset="45%" stopColor="rgba(255,255,255,0.75)" />
-          <stop offset="100%" stopColor="rgba(255,255,255,0)" />
-        </linearGradient>
-      </defs>
-
-      <rect width="760" height="300" rx="28" fill={`url(#dashBg-${mode})`} />
-      <path
-        d="M30 250 C80 60, 180 30, 380 30 C580 30, 690 60, 730 250 Z"
-        fill="#111827"
-        opacity="0.9"
-      />
-
-      <Gauge cx="210" cy="155" radius="93" maxLabel="8" label="x1000 rpm" needleAngle={-90} />
-      <Gauge cx="550" cy="155" radius="93" maxLabel="240" label="km/h" needleAngle={-42} speed />
-
-      <rect x="335" y="80" width="90" height="145" rx="6" fill="#0f172a" stroke="#475569" strokeWidth="2" />
-      <text x="350" y="108" fill="#e2e8f0" fontSize="26" fontWeight="800">D</text>
-      <rect x="366" y="128" width="28" height="55" rx="14" fill="#cbd5e1" opacity="0.9" />
-      <rect x="360" y="145" width="40" height="24" rx="6" fill="none" stroke="#e2e8f0" strokeWidth="2" />
-      <text x="350" y="210" fill="#e2e8f0" fontSize="15" fontWeight="700">25℃</text>
-      <text x="388" y="210" fill="#e2e8f0" fontSize="15" fontWeight="700">123456 km</text>
-
-      <path d="M310 48 l-18 16 h13 v18 h10 v-18 h13z" fill="#334155" opacity="0.45" transform="rotate(-90 310 65)" />
-      <path d="M450 48 l18 16 h-13 v18 h-10 v-18 h-13z" fill="#334155" opacity="0.45" transform="rotate(90 450 65)" />
-
-      <path d="M685 203 q10 -10 20 0" stroke="#22c55e" strokeWidth="3" fill="none" />
-      <path d="M685 213 q10 -10 20 0" stroke="#22c55e" strokeWidth="3" fill="none" />
-      <line x1="680" y1="198" x2="680" y2="218" stroke="#22c55e" strokeWidth="3" />
-      <line x1="710" y1="198" x2="710" y2="218" stroke="#22c55e" strokeWidth="3" />
-
-      {isGlare && (
-        <>
-          <rect x="-60" y="-80" width="200" height="520" fill={`url(#glare-${mode})`} transform="rotate(18 240 150)" opacity="0.9" />
-          <rect x="120" y="-80" width="110" height="520" fill="white" transform="rotate(18 240 150)" opacity="0.18" />
-        </>
-      )}
-    </svg>
-  );
-}
-
-function Gauge({ cx, cy, radius, label, needleAngle, speed = false }) {
-  const numbers = speed
-    ? ['0', '20', '40', '60', '80', '100', '120', '140', '160', '180', '200', '220', '240']
-    : ['0', '1', '2', '3', '4', '5', '6', '7', '8'];
-
-  const startAngle = speed ? 135 : 135;
-  const endAngle = speed ? 405 : 405;
-
-  return (
-    <g>
-      <circle cx={cx} cy={cy} r={radius} fill="#111827" stroke="#9ca3af" strokeWidth="5" />
-      <circle cx={cx} cy={cy} r={radius - 25} fill="none" stroke="#475569" strokeWidth="2" />
-
-      <text x={cx} y={cy - radius + 28} textAnchor="middle" fill="#cbd5e1" fontSize="14" fontWeight="700">
-        {label}
-      </text>
-
-      {numbers.map((num, index) => {
-        const angle = startAngle + ((endAngle - startAngle) / (numbers.length - 1)) * index;
-        const rad = (angle * Math.PI) / 180;
-        const tx = cx + Math.cos(rad) * (radius - 28);
-        const ty = cy + Math.sin(rad) * (radius - 28) + 5;
-
-        return (
-          <text
-            key={num}
-            x={tx}
-            y={ty}
-            textAnchor="middle"
-            fill="#f8fafc"
-            fontSize={speed ? '15' : '22'}
-            fontWeight="700"
-          >
-            {num}
-          </text>
-        );
-      })}
-
-      {[...Array(37)].map((_, index) => {
-        const angle = startAngle + ((endAngle - startAngle) / 36) * index;
-        const rad = (angle * Math.PI) / 180;
-        const outer = radius - 9;
-        const inner = index % 3 === 0 ? radius - 18 : radius - 14;
-        const x1 = cx + Math.cos(rad) * outer;
-        const y1 = cy + Math.sin(rad) * outer;
-        const x2 = cx + Math.cos(rad) * inner;
-        const y2 = cy + Math.sin(rad) * inner;
-
-        return (
-          <line
-            key={index}
-            x1={x1}
-            y1={y1}
-            x2={x2}
-            y2={y2}
-            stroke={index > 28 && !speed ? '#ef4444' : '#e5e7eb'}
-            strokeWidth={index % 3 === 0 ? '3' : '1.5'}
-            strokeLinecap="round"
-          />
-        );
-      })}
-
-      <line
-        x1={cx}
-        y1={cy}
-        x2={cx}
-        y2={cy - radius + 25}
-        stroke="#ef4444"
-        strokeWidth="5"
-        strokeLinecap="round"
-        transform={`rotate(${needleAngle} ${cx} ${cy})`}
-      />
-
-      <circle cx={cx} cy={cy} r="13" fill="#1e293b" />
-      <circle cx={cx} cy={cy} r="7" fill="#ffffff" />
-    </g>
-  );
-}
-
-function WrongPhotoCard({ mode, label }) {
-  return (
-    <div className="relative bg-white rounded-[18px] border-2 border-red-500 p-2 shadow-sm overflow-visible">
-      <div className="absolute -top-2 -left-2 w-8 h-8 rounded-full bg-red-500 border-4 border-white flex items-center justify-center z-10">
-        <X className="w-5 h-5 text-white stroke-[3]" />
-      </div>
-
-      <div className="rounded-[13px] overflow-hidden bg-slate-950 h-[86px]">
-        <DashboardSvg mode={mode} />
-      </div>
-
-      <div className="h-10 flex items-center justify-center gap-1.5">
-        <div className="w-5 h-5 rounded-full border-2 border-red-500 flex items-center justify-center shrink-0">
-          <X className="w-3 h-3 text-red-500 stroke-[3]" />
+      <div className="relative flex items-center justify-center gap-5 w-full">
+        <div className="relative w-24 h-24 rounded-full border-4 border-slate-400">
+          <div className="absolute inset-4 rounded-full border border-slate-600"></div>
+          <div className="absolute left-1/2 top-1/2 w-1 h-12 bg-red-500 rounded-full origin-bottom -translate-x-1/2 -translate-y-full"></div>
+          <div className="absolute left-1/2 top-1/2 w-3 h-3 bg-white rounded-full -translate-x-1/2 -translate-y-1/2"></div>
         </div>
-        <p className="text-[12px] font-black text-slate-700 tracking-[-0.04em]">
-          {label}
-        </p>
+
+        <div className="w-12 h-16 rounded border border-slate-600 flex items-start justify-start p-2 text-white text-sm font-black">
+          D
+        </div>
+
+        <div className="relative w-24 h-24 rounded-full border-4 border-slate-400">
+          <div className="absolute inset-4 rounded-full border border-slate-600"></div>
+          <div className="absolute left-1/2 top-1/2 w-1 h-12 bg-red-500 rounded-full origin-bottom -translate-x-1/2 -translate-y-full rotate-45"></div>
+          <div className="absolute left-1/2 top-1/2 w-3 h-3 bg-white rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+        </div>
+      </div>
+
+      {type === 'glare' && (
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent rotate-12 scale-150"></div>
+      )}
+    </div>
+  );
+}
+
+// 잘못된 촬영 예시 카드입니다.
+function WrongPhotoCard({ type, label }) {
+  return (
+    <div className="relative bg-white rounded-2xl border-2 border-red-500 p-2 shadow-sm">
+      <div className="absolute -top-2 -left-2 w-8 h-8 rounded-full bg-red-500 border-4 border-white flex items-center justify-center z-10">
+        <X className="w-5 h-5 text-white" />
+      </div>
+
+      <DashboardMockup type={type} />
+
+      <div className="mt-3 flex items-center gap-1.5 justify-center">
+        <div className="w-5 h-5 rounded-full border-2 border-red-500 flex items-center justify-center shrink-0">
+          <X className="w-3 h-3 text-red-500" />
+        </div>
+        <p className="text-xs font-black text-slate-700 text-center">{label}</p>
       </div>
     </div>
   );
 }
 
+// 촬영 팁 한 줄입니다.
 function GuideTip({ number, text }) {
   return (
     <div className="flex gap-3 border-b border-dashed border-blue-200 last:border-b-0 pb-3 last:pb-0">
       <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-black shrink-0">
         {number}
       </div>
-      <p className="text-[14px] font-bold text-slate-700 leading-relaxed tracking-[-0.03em]">
+      <p className="text-sm font-bold text-slate-700 leading-relaxed">
         {text}
       </p>
     </div>
   );
 }
+
+const styleTag = document.createElement('style');
+styleTag.innerHTML = `
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+`;
+document.head.appendChild(styleTag);
