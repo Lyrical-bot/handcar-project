@@ -16,7 +16,11 @@ import {
   Navigation,
   ExternalLink,
   ChevronRight,
-  Info
+  Info,
+  Lightbulb,
+  ChevronDown,
+  LocateFixed,
+  Droplet
 } from 'lucide-react';
 
 const AI_PROXY_URL = import.meta.env.VITE_AI_PROXY_URL;
@@ -194,10 +198,36 @@ const MANUFACTURERS = [
 ];
 
 const SHOPS = [
-  { id: 1, name: '핸즈종합정비소', type: 'general', lat: 35, lng: 40, addr: '서울시 강남구 테헤란로 123' },
-  { id: 2, name: '에코그린 폐유처리소', type: 'oil', lat: 60, lng: 30, addr: '서울시 서초구 효령로 456' },
-  { id: 3, name: '마스터 자동차 센터', type: 'general', lat: 45, lng: 70, addr: '서울시 송파구 올림픽로 789' },
-  { id: 4, name: '클린 오일 뱅크', type: 'oil', lat: 20, lng: 60, addr: '서울시 강서구 화곡로 321' },
+  {
+    id: 1,
+    name: '블루핸즈 가정점',
+    type: 'general',
+    lat: 35,
+    lng: 40,
+    addr: '인천 서구 염곡로 123',
+    distance: '1.2km',
+    wasteOil: true,
+  },
+  {
+    id: 2,
+    name: '블루핸즈 주안점',
+    type: 'general',
+    lat: 58,
+    lng: 32,
+    addr: '인천 미추홀구 경인로 402',
+    distance: '2.6km',
+    wasteOil: false,
+  },
+  {
+    id: 3,
+    name: '블루핸즈 서인천점',
+    type: 'general',
+    lat: 44,
+    lng: 68,
+    addr: '인천 서구 서로 301',
+    distance: '3.8km',
+    wasteOil: true,
+  },
 ];
 
 const DIY_ITEMS = [
@@ -218,6 +248,16 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
 
+  // 계기판 촬영 가이드 화면 표시 상태
+  const [showPhotoGuide, setShowPhotoGuide] = useState(false);
+
+  // "일주일 동안 보지 않기" 설정 상태
+  // localStorage에 저장된 만료 시간이 현재 시간보다 크면 가이드를 생략합니다.
+  const [hideGuideForWeek, setHideGuideForWeek] = useState(() => {
+    const hideUntil = Number(localStorage.getItem('hidePhotoGuideUntil') || 0);
+    return hideUntil > Date.now();
+  });
+
   // DIY 가이드 상태
   const [diyStep, setDiyStep] = useState(1);
   const [selectedBrand, setSelectedBrand] = useState('');
@@ -234,6 +274,7 @@ export default function App() {
   const [addressInput, setAddressInput] = useState('');
   const [selectedAddress, setSelectedAddress] = useState('');
   const [showNearbyMapModal, setShowNearbyMapModal] = useState(false);
+  const [isOilGuideOpen, setIsOilGuideOpen] = useState(false);
 
   // 기록 상태
   const [history, setHistory] = useState([
@@ -470,7 +511,7 @@ export default function App() {
 
   const getMapEmbedUrl = () => {
     if (selectedAddress) {
-      const query = encodeURIComponent(`${selectedAddress} 자동차 정비소`);
+      const query = encodeURIComponent(selectedAddress);
       return `https://maps.google.com/maps?q=${query}&z=14&output=embed&hl=ko`;
     }
 
@@ -483,14 +524,14 @@ export default function App() {
 
   const getNearbySearchText = () => {
     if (selectedAddress) {
-      return `${selectedAddress} 자동차 정비소`;
+      return `${selectedAddress} 블루핸즈 정비소`;
     }
 
     if (userLocation) {
-      return `${userLocation.lat},${userLocation.lng} 자동차 정비소`;
+      return `${userLocation.lat},${userLocation.lng} 블루핸즈 정비소`;
     }
 
-    return '내 주변 자동차 정비소';
+    return '내 주변 블루핸즈 정비소';
   };
 
   const openNearbyMap = (service) => {
@@ -541,6 +582,25 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen bg-slate-50 font-sans text-slate-900 max-w-md mx-auto shadow-2xl relative border-x border-slate-200">
+      {/*
+        계기판 촬영 가이드 오버레이
+        - 메인 화면의 "사진 촬영 및 선택" 버튼을 눌렀을 때 showPhotoGuide가 true가 됩니다.
+        - 사용자가 가이드에서 "사진 촬영 시작"을 누르면 기존 hidden input을 클릭해 파일 선택/촬영을 시작합니다.
+      */}
+      {showPhotoGuide && (
+        <PhotoGuideScreen
+          hideGuideForWeek={hideGuideForWeek}
+          setHideGuideForWeek={setHideGuideForWeek}
+          onClose={() => setShowPhotoGuide(false)}
+          onStart={() => {
+            setShowPhotoGuide(false);
+            setTimeout(() => {
+              document.getElementById('dashboard-photo-input')?.click();
+            }, 100);
+          }}
+        />
+      )}
+
       {/* 상단바 */}
       <header className="bg-white px-4 py-4 flex items-center justify-between border-b sticky top-0 z-40">
         <button onClick={() => { setImage(null); setResult(null); setActiveTab('find'); }} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
@@ -568,10 +628,34 @@ export default function App() {
                   <h2 className="text-2xl font-black">경고등을 찍어주세요</h2>
                   <p className="text-slate-500 font-medium">AI가 실시간으로 분석해드립니다</p>
                 </div>
-                <label className="block w-full py-5 bg-blue-600 text-white rounded-3xl font-bold shadow-xl shadow-blue-200 cursor-pointer active:scale-95 transition-transform text-lg">
-                  사진 촬영 및 선택
-                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                </label>
+                <>
+                  {/*
+                    기존에는 이 영역이 label + input 구조라서 버튼을 누르면 바로 파일 선택창이 열렸습니다.
+                    지금은 먼저 촬영 가이드 화면을 보여준 뒤, 가이드의 "사진 촬영 시작" 버튼에서
+                    아래 hidden input을 클릭하도록 변경했습니다.
+                  */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (hideGuideForWeek) {
+                        document.getElementById('dashboard-photo-input')?.click();
+                      } else {
+                        setShowPhotoGuide(true);
+                      }
+                    }}
+                    className="block w-full py-5 bg-blue-600 text-white rounded-3xl font-bold shadow-xl shadow-blue-200 cursor-pointer active:scale-95 transition-transform text-lg"
+                  >
+                    사진 촬영 및 선택
+                  </button>
+
+                  <input
+                    id="dashboard-photo-input"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
+                </>
               </div>
             ) : analyzing ? (
               <div className="flex flex-col items-center justify-center py-20 space-y-6">
@@ -782,7 +866,7 @@ export default function App() {
         {/* 지도 탭 */}
         {activeTab === 'map' && (
           <div className="h-full flex flex-col">
-            <div className="relative flex-1 bg-blue-50">
+            <div className="relative flex-1 bg-blue-50 min-h-[360px]">
               <div className="absolute inset-0 overflow-hidden">
                 <iframe
                   key={getMapEmbedUrl()}
@@ -795,86 +879,167 @@ export default function App() {
                 ></iframe>
               </div>
 
+              <button
+                onClick={getUserLocation}
+                className="absolute right-5 top-5 z-20 w-14 h-14 rounded-2xl bg-white shadow-xl border border-slate-100 flex items-center justify-center active:scale-95 transition-transform"
+                aria-label="현위치"
+              >
+                <LocateFixed className="w-7 h-7 text-slate-600" />
+              </button>
+
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
+                <div className="w-7 h-7 bg-blue-600 border-4 border-white rounded-full shadow-xl"></div>
+                <div className="absolute -inset-8 bg-blue-400/20 rounded-full"></div>
+              </div>
+
+              <div className="absolute inset-0 pointer-events-none">
+                {SHOPS.map(shop => (
+                  <div
+                    key={shop.id}
+                    className="absolute -translate-x-1/2 -translate-y-full opacity-80"
+                    style={{ left: `${shop.lng}%`, top: `${shop.lat}%` }}
+                  >
+                    <MapPin
+                      className="w-8 h-8 text-blue-600 drop-shadow-md"
+                      fill="currentColor"
+                      fillOpacity="0.15"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="bg-white p-6 rounded-t-[40px] -mt-10 shadow-2xl z-20 space-y-4">
-              <div className="flex justify-between items-end">
-                <div>
-                  <h2 className="text-2xl font-black">주변 정비소</h2>
-                  <p className="text-slate-400 text-sm font-bold">내 위치 기준 반경 5km</p>
-
-                  <div className="mt-3 space-y-2">
-                    <input
-                      value={addressInput}
-                      onChange={(e) => setAddressInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && applyAddressToMap()}
-                      placeholder="예: 인천 서구 가정동, 주안역, 검단사거리역"
-                      className="w-full p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold outline-none focus:border-blue-500"
-                    />
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={applyAddressToMap}
-                        className="py-3 px-3 bg-blue-600 text-white rounded-2xl font-bold text-sm"
-                      >
-                        입력 주소로 보기
-                      </button>
-                      <button
-                        onClick={getUserLocation}
-                        className="py-3 px-3 bg-slate-900 text-white rounded-2xl font-bold text-sm"
-                      >
-                        {isLocating ? '확인 중...' : '현재 위치 사용'}
-                      </button>
-                    </div>
-
-                    <button
-                      onClick={() => setShowNearbyMapModal(true)}
-                      className="w-full py-3 px-4 bg-emerald-500 text-white rounded-2xl font-bold text-sm"
-                    >
-                      이 위치로 지도 앱에서 정비소 찾기
-                    </button>
-                  </div>
-
-                  {selectedAddress && (
-                    <p className="mt-2 text-xs text-blue-600 font-bold">
-                      기준 주소: {selectedAddress}
-                    </p>
-                  )}
-
-                  {userLocation && !selectedAddress && (
-                    <p className="mt-2 text-xs text-blue-600 font-bold">
-                      현재 위치: {userLocation.lat.toFixed(5)}, {userLocation.lng.toFixed(5)}
-                      <br />
-                      정확도: 약 {Math.round(userLocation.accuracy)}m
-                    </p>
-                  )}
-
-                  {locationError && (
-                    <p className="mt-2 text-xs text-red-500 font-bold">
-                      {locationError}
-                    </p>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <span className="flex items-center gap-1 text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">● 일반</span>
-                  <span className="flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">● 폐유처리</span>
+            <div className="bg-white p-6 rounded-t-[40px] -mt-10 shadow-2xl z-20 space-y-5">
+              <div className="flex items-center gap-2">
+                <div className="flex-1 flex items-center bg-white border-2 border-slate-100 rounded-3xl px-4 py-3 shadow-sm">
+                  <Search className="w-6 h-6 text-slate-400 mr-2" />
+                  <input
+                    value={addressInput}
+                    onChange={(e) => setAddressInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && applyAddressToMap()}
+                    placeholder="주소 또는 지역을 입력하세요"
+                    className="flex-1 outline-none text-sm font-bold text-slate-700 placeholder:text-slate-400"
+                  />
+                  <button
+                    onClick={applyAddressToMap}
+                    className="text-blue-600 font-black text-sm px-2"
+                  >
+                    검색
+                  </button>
                 </div>
               </div>
 
-              <div className="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+              <div className="flex justify-between items-end">
+                <div>
+                  <h2 className="text-2xl font-black">블루핸즈 정비소</h2>
+                  <p className="text-slate-400 text-sm font-bold">내 위치 기준 반경 5km</p>
+                </div>
+
+                <button className="px-4 py-3 rounded-2xl border-2 border-slate-100 text-sm font-bold text-slate-600 flex items-center gap-2">
+                  거리순
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              </div>
+
+              {selectedAddress && (
+                <p className="text-xs text-blue-600 font-bold">
+                  기준 주소: {selectedAddress}
+                </p>
+              )}
+
+              {locationError && (
+                <p className="text-xs text-red-500 font-bold">
+                  {locationError}
+                </p>
+              )}
+
+              <div className="border-2 border-slate-100 rounded-2xl overflow-hidden">
+                <button
+                  onClick={() => setIsOilGuideOpen(prev => !prev)}
+                  className="w-full p-4 flex items-center justify-between bg-white"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                      <Droplet className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <span className="font-black text-slate-800">폐유처리 안내</span>
+                  </div>
+
+                  <ChevronDown
+                    className={`w-5 h-5 text-slate-500 transition-transform ${isOilGuideOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                {isOilGuideOpen && (
+                  <div className="px-5 pb-5 pt-1 text-sm text-slate-600 leading-relaxed bg-slate-50">
+                    <p className="font-bold mb-2">
+                      폐유, 엔진오일, 윤활유 등은 지정폐기물로 분류되어 함부로 버리면 안 됩니다.
+                    </p>
+                    <ul className="space-y-2 list-disc pl-5">
+                      <li>자가 정비 후 발생한 폐오일은 인근 카센터나 차량 정비소에 문의해 처리 요청할 수 있습니다.</li>
+                      <li>10kg 미만 소량은 지자체의 소량 유해폐기물 처리 서비스를 확인할 수 있습니다.</li>
+                      <li>양이 많은 경우 폐유 수거 및 처리 전문 업체에 문의하는 것이 안전합니다.</li>
+                      <li>하수구에 버리면 배관 막힘과 환경 오염의 원인이 될 수 있습니다.</li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
                 {SHOPS.map(shop => (
                   <div
                     key={shop.id}
                     onMouseEnter={() => setHoveredShop(shop.id)}
                     onMouseLeave={() => setHoveredShop(null)}
                     onClick={() => setShowMapModal(shop)}
-                    className={`p-4 rounded-2xl border-2 transition-all cursor-pointer group flex justify-between items-center ${shop.type === 'oil' ? 'border-green-50 hover:border-green-400 bg-green-50/30' : 'border-slate-50 hover:border-blue-400'}`}
+                    className="p-4 rounded-3xl border-2 border-slate-100 bg-white flex items-center gap-4 cursor-pointer active:scale-[0.99] transition-transform"
                   >
-                    <div>
-                      <h4 className="font-black text-slate-800">{shop.name}</h4>
-                      <p className="text-xs text-slate-500 font-medium">{shop.addr}</p>
+                    <div className="w-28 shrink-0">
+                      <p className="text-blue-700 italic font-black text-xl leading-tight">
+                        bluehands
+                      </p>
+                      <p className="text-[10px] font-bold text-slate-400 mt-1">
+                        공식정비서비스
+                      </p>
                     </div>
-                    <Navigation className={`w-5 h-5 ${shop.type === 'oil' ? 'text-green-500' : 'text-blue-500'} group-hover:translate-x-1 transition-transform`} />
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-black text-slate-900 text-lg">
+                          {shop.name}
+                        </h4>
+
+                        <span className="px-2 py-1 rounded-lg bg-blue-50 text-blue-600 text-[11px] font-black">
+                          일반
+                        </span>
+
+                        {shop.wasteOil && (
+                          <span className="px-2 py-1 rounded-lg bg-slate-100 text-slate-500 text-[11px] font-black flex items-center gap-1">
+                            <Droplet className="w-3 h-3" />
+                            폐유
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-sm text-slate-500 font-medium mt-1">
+                        {shop.addr}
+                      </p>
+
+                      <p className="text-blue-600 text-sm font-black mt-1">
+                        {shop.distance || '거리 확인'}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowMapModal(shop);
+                      }}
+                      className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center shrink-0"
+                      aria-label="길찾기"
+                    >
+                      <Navigation className="w-7 h-7 text-blue-600" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -1032,6 +1197,192 @@ export default function App() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+
+// =============================================================================
+// 계기판 촬영 가이드 화면 컴포넌트
+// =============================================================================
+// 이 컴포넌트는 기존 업로드/AI 분석 로직을 건드리지 않고,
+// 파일 선택창이 열리기 전에 사용자에게 촬영 가이드를 먼저 보여주기 위한 화면입니다.
+function PhotoGuideScreen({ onClose, onStart, hideGuideForWeek, setHideGuideForWeek }) {
+  const handleCheckWeek = (checked) => {
+    setHideGuideForWeek(checked);
+
+    if (checked) {
+      const sevenDays = 7 * 24 * 60 * 60 * 1000;
+      localStorage.setItem('hidePhotoGuideUntil', String(Date.now() + sevenDays));
+    } else {
+      localStorage.removeItem('hidePhotoGuideUntil');
+    }
+  };
+
+  return (
+    <div className="absolute inset-0 z-[999] bg-white flex flex-col">
+      <header className="bg-white px-4 py-4 border-b flex items-center justify-center relative">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute left-4 p-2 rounded-full hover:bg-slate-100"
+          aria-label="촬영 가이드 닫기"
+        >
+          <ChevronLeft className="w-7 h-7 text-slate-900" />
+        </button>
+
+        <div className="text-center">
+          <h1 className="text-2xl font-black text-slate-900">계기판 촬영 가이드</h1>
+          <p className="mt-1 text-sm font-medium text-slate-500">
+            정확한 분석을 위해 아래 예시를 확인해 주세요
+          </p>
+        </div>
+      </header>
+
+      <main className="flex-1 overflow-y-auto p-6 space-y-8 pb-36">
+        <section className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center">
+              <CheckCircle className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-xl font-black text-slate-900">올바른 촬영</h2>
+          </div>
+
+          <div className="relative bg-white rounded-3xl border-2 border-emerald-500 p-3 shadow-lg shadow-emerald-100">
+            <div className="absolute -top-3 -left-3 w-12 h-12 rounded-full bg-emerald-500 border-4 border-white flex items-center justify-center z-10">
+              <CheckCircle className="w-7 h-7 text-white" />
+            </div>
+
+            <DashboardMockup type="correct" />
+
+            <div className="mt-3 py-3 px-4 rounded-2xl bg-emerald-50 flex items-center justify-center gap-2">
+              <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
+              <p className="text-sm font-black text-slate-800 text-center">
+                계기판 전체가 선명하게, 정면에서 촬영
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-red-500 flex items-center justify-center">
+              <X className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-xl font-black text-slate-900">피해야 할 촬영</h2>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <WrongPhotoCard type="dark" label="너무 어두움" />
+            <WrongPhotoCard type="blur" label="초점 흐림" />
+            <WrongPhotoCard type="glare" label="빛 반사" />
+          </div>
+        </section>
+
+        <section className="rounded-3xl bg-blue-50 border border-blue-100 p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <Lightbulb className="w-6 h-6 text-blue-600" />
+            <h2 className="text-lg font-black text-blue-600">촬영 팁</h2>
+          </div>
+
+          <GuideTip number="1" text="계기판 전체가 화면에 들어오도록 정면에서 촬영해 주세요." />
+          <GuideTip number="2" text="햇빛·실내등 반사가 없는 각도를 찾아 촬영해 주세요." />
+          <GuideTip number="3" text="손을 고정하고 흔들리지 않게 촬영하세요." />
+          <GuideTip number="4" text="엔진을 켠 상태에서 경고등이 켜진 채로 찍어주세요." />
+        </section>
+      </main>
+
+      <div className="absolute bottom-0 left-0 right-0 bg-white border-t p-5 space-y-4">
+        <button
+          type="button"
+          onClick={onStart}
+          className="w-full py-5 bg-blue-600 text-white rounded-3xl font-black shadow-xl shadow-blue-200 active:scale-95 transition-transform text-lg flex items-center justify-center gap-2"
+        >
+          <Camera className="w-6 h-6" />
+          사진 촬영 시작
+        </button>
+
+        <label className="flex items-center justify-center gap-3 text-slate-500 font-bold">
+          <input
+            type="checkbox"
+            checked={hideGuideForWeek}
+            onChange={(e) => handleCheckWeek(e.target.checked)}
+            className="w-6 h-6 accent-blue-600"
+          />
+          일주일 동안 보지 않기
+        </label>
+      </div>
+    </div>
+  );
+}
+
+// 실제 사진 대신 계기판 예시를 간단한 UI 도형으로 그리는 컴포넌트입니다.
+function DashboardMockup({ type = 'correct' }) {
+  return (
+    <div
+      className={`
+        relative h-44 rounded-2xl bg-slate-950 overflow-hidden flex items-center justify-center
+        ${type === 'dark' ? 'brightness-[0.25]' : ''}
+        ${type === 'blur' ? 'blur-[2px]' : ''}
+      `}
+    >
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-800/50 to-slate-950"></div>
+
+      <div className="relative flex items-center justify-center gap-5 w-full">
+        <div className="relative w-24 h-24 rounded-full border-4 border-slate-400">
+          <div className="absolute inset-4 rounded-full border border-slate-600"></div>
+          <div className="absolute left-1/2 top-1/2 w-1 h-12 bg-red-500 rounded-full origin-bottom -translate-x-1/2 -translate-y-full"></div>
+          <div className="absolute left-1/2 top-1/2 w-3 h-3 bg-white rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+        </div>
+
+        <div className="w-12 h-16 rounded border border-slate-600 flex items-start justify-start p-2 text-white text-sm font-black">
+          D
+        </div>
+
+        <div className="relative w-24 h-24 rounded-full border-4 border-slate-400">
+          <div className="absolute inset-4 rounded-full border border-slate-600"></div>
+          <div className="absolute left-1/2 top-1/2 w-1 h-12 bg-red-500 rounded-full origin-bottom -translate-x-1/2 -translate-y-full rotate-45"></div>
+          <div className="absolute left-1/2 top-1/2 w-3 h-3 bg-white rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+        </div>
+      </div>
+
+      {type === 'glare' && (
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent rotate-12 scale-150"></div>
+      )}
+    </div>
+  );
+}
+
+// 잘못된 촬영 예시 카드입니다.
+function WrongPhotoCard({ type, label }) {
+  return (
+    <div className="relative bg-white rounded-2xl border-2 border-red-500 p-2 shadow-sm">
+      <div className="absolute -top-2 -left-2 w-8 h-8 rounded-full bg-red-500 border-4 border-white flex items-center justify-center z-10">
+        <X className="w-5 h-5 text-white" />
+      </div>
+
+      <DashboardMockup type={type} />
+
+      <div className="mt-3 flex items-center gap-1.5 justify-center">
+        <div className="w-5 h-5 rounded-full border-2 border-red-500 flex items-center justify-center shrink-0">
+          <X className="w-3 h-3 text-red-500" />
+        </div>
+        <p className="text-xs font-black text-slate-700 text-center">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+// 촬영 팁 한 줄입니다.
+function GuideTip({ number, text }) {
+  return (
+    <div className="flex gap-3 border-b border-dashed border-blue-200 last:border-b-0 pb-3 last:pb-0">
+      <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-black shrink-0">
+        {number}
+      </div>
+      <p className="text-sm font-bold text-slate-700 leading-relaxed">
+        {text}
+      </p>
     </div>
   );
 }
