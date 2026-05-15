@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PhotoGuideScreen from './PhotoGuideScreen';
 import {
-
-  Camera,
+Camera,
   MapPin,
   Wrench,
   History,
@@ -1066,6 +1065,520 @@ export default function App() {
 
 // =============================================================================
 // ???? ?? ? ???? - ?? ???
+
+
+
+
+
+function MapTab() {
+  const [bluehandsShops, setBluehandsShops] = useState([]);
+  const [bluehandsLoading, setBluehandsLoading] = useState(true);
+  const [bluehandsError, setBluehandsError] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [selectedShopType, setSelectedShopType] = useState('all');
+  const [selectedShop, setSelectedShop] = useState(null);
+  const [isOilGuideOpen, setIsOilGuideOpen] = useState(false);
+  const [expandedAddressIds, setExpandedAddressIds] = useState({});
+  const [sortMode, setSortMode] = useState('distance');
+  const [showBluehandsHelp, setShowBluehandsHelp] = useState(false);
+
+  const TEXT = {
+    searchPlaceholder: "\uc8fc\uc18c \ub610\ub294 \uc9c0\uc5ed\uc744 \uc785\ub825\ud558\uc138\uc694",
+    title: "\ube14\ub8e8\ud578\uc988 \uc815\ube44\uc18c",
+    all: "\uc804\uccb4",
+    specialist: "\uc804\ubb38",
+    general: "\uc885\ud569",
+    hitech: "\ud558\uc774\ud14c\ud06c",
+    distanceSort: "\uac70\ub9ac\uc21c",
+    resultPrefix: "\uac80\uc0c9 \uacb0\uacfc",
+    resultSuffix: "\uac1c \uc911 \ucd5c\ub300 50\uac1c\ub97c \ud45c\uc2dc\ud569\ub2c8\ub2e4.",
+    oilGuide: "\ud3d0\uc720\ucc98\ub9ac \uc548\ub0b4",
+    loading: "\ube14\ub8e8\ud578\uc988 \ubaa9\ub85d\uc744 \ubd88\ub7ec\uc624\ub294 \uc911\uc785\ub2c8\ub2e4...",
+    loadError: "\ube14\ub8e8\ud578\uc988 \ub370\uc774\ud130\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4.",
+    noResult: "\uac80\uc0c9 \uacb0\uacfc\uac00 \uc5c6\uc2b5\ub2c8\ub2e4.",
+    official: "\uacf5\uc2dd\uc11c\ube44\uc2a4",
+    naver: "\ub124\uc774\ubc84 \uc9c0\ub3c4",
+    kakao: "\uce74\uce74\uc624\ub9f5",
+    google: "\uad6c\uae00 \uc9c0\ub3c4",
+    reservation: "\ud604\ub300\ucc28 \uacf5\uc2dd \uc608\uc57d \ud398\uc774\uc9c0 \uc5f4\uae30",
+    oilText1: "\ud3d0\uc720, \uc5d4\uc9c4\uc624\uc77c, \uc724\ud65c\uc720 \ub4f1\uc740 \ud568\ubd80\ub85c \ubc84\ub9ac\uba74 \uc548 \ub429\ub2c8\ub2e4.",
+    oilText2: "\uc790\uac00 \uc815\ube44 \ud6c4 \ubc1c\uc0dd\ud55c \ud3d0\uc624\uc77c\uc740 \uc778\uadfc \uce74\uc13c\ud130\ub098 \uc815\ube44\uc18c\uc5d0 \ucc98\ub9ac \ubc29\ubc95\uc744 \ubb38\uc758\ud558\uc138\uc694.",
+    oilText3: "\ud558\uc218\uad6c\uc5d0 \ubc84\ub9ac\uba74 \ubc30\uad00 \ub9c9\ud798\uacfc \ud658\uacbd \uc624\uc5fc\uc758 \uc6d0\uc778\uc774 \ub420 \uc218 \uc788\uc2b5\ub2c8\ub2e4.",
+    helpTitle: "\ube14\ub8e8\ud578\uc988 \uc548\ub0b4",
+    helpIntro: "\ube14\ub8e8\ud578\uc988\ub294 \ud604\ub300\uc790\ub3d9\ucc28 \uacf5\uc2dd \uc815\ube44 \uc11c\ube44\uc2a4 \ub124\ud2b8\uc6cc\ud06c\uc785\ub2c8\ub2e4.",
+    helpSpecialist: "\uc804\ubb38: \uc77c\ubc18 \uc810\uac80\uacfc \uacbd\uc815\ube44 \uc704\uc8fc\uc758 \uc9c0\uc5ed \uc815\ube44\uc18c",
+    helpGeneral: "\uc885\ud569: \ubcf4\ub2e4 \ub113\uc740 \uc815\ube44 \ud56d\ubaa9\uc744 \ub2e4\ub8e8\ub294 \uc885\ud569 \uc815\ube44\uc18c",
+    helpHitech: "\ud558\uc774\ud14c\ud06c: \uace0\ub09c\ub3c4 \uc9c4\ub2e8, \uc804\uc7a5, \ucca8\ub2e8 \uc2dc\uc2a4\ud15c \uc810\uac80\uc744 \uc9c0\uc6d0\ud558\ub294 \uc13c\ud130",
+  };
+
+  const cityShortMap = {
+    "\uc11c\uc6b8\ud2b9\ubcc4\uc2dc": "\uc11c\uc6b8",
+    "\uc778\ucc9c\uad11\uc5ed\uc2dc": "\uc778\ucc9c",
+    "\ubd80\uc0b0\uad11\uc5ed\uc2dc": "\ubd80\uc0b0",
+    "\ub300\uad6c\uad11\uc5ed\uc2dc": "\ub300\uad6c",
+    "\uad11\uc8fc\uad11\uc5ed\uc2dc": "\uad11\uc8fc",
+    "\ub300\uc804\uad11\uc5ed\uc2dc": "\ub300\uc804",
+    "\uc6b8\uc0b0\uad11\uc5ed\uc2dc": "\uc6b8\uc0b0",
+    "\uc138\uc885\ud2b9\ubcc4\uc790\uce58\uc2dc": "\uc138\uc885",
+    "\uacbd\uae30\ub3c4": "\uacbd\uae30",
+    "\uac15\uc6d0\ud2b9\ubcc4\uc790\uce58\ub3c4": "\uac15\uc6d0",
+    "\ucda9\uccad\ubd81\ub3c4": "\ucda9\ubd81",
+    "\ucda9\uccad\ub0a8\ub3c4": "\ucda9\ub0a8",
+    "\uc804\ubd81\ud2b9\ubcc4\uc790\uce58\ub3c4": "\uc804\ubd81",
+    "\uc804\ub77c\ub0a8\ub3c4": "\uc804\ub0a8",
+    "\uacbd\uc0c1\ubd81\ub3c4": "\uacbd\ubd81",
+    "\uacbd\uc0c1\ub0a8\ub3c4": "\uacbd\ub0a8",
+    "\uc81c\uc8fc\ud2b9\ubcc4\uc790\uce58\ub3c4": "\uc81c\uc8fc",
+  };
+
+  useEffect(() => {
+    const loadBluehands = async () => {
+      try {
+        const response = await fetch('/data/bluehands.json');
+
+        if (!response.ok) {
+          throw new Error(`bluehands.json load failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setBluehandsShops(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error(error);
+        setBluehandsError(error.message);
+      } finally {
+        setBluehandsLoading(false);
+      }
+    };
+
+    loadBluehands();
+  }, []);
+
+  const getTypeMeta = (type) => {
+    if (type === 'specialist') {
+      return {
+        label: TEXT.specialist,
+        fullLabel: "\uc804\ubb38 \ube14\ub8e8\ud578\uc988",
+        badgeClass: 'bg-emerald-50 text-emerald-600',
+      };
+    }
+
+    if (type === 'general') {
+      return {
+        label: TEXT.general,
+        fullLabel: "\uc885\ud569 \ube14\ub8e8\ud578\uc988",
+        badgeClass: 'bg-blue-50 text-blue-600',
+      };
+    }
+
+    if (type === 'hitech') {
+      return {
+        label: TEXT.hitech,
+        fullLabel: "\ud558\uc774\ud14c\ud06c\uc13c\ud130",
+        badgeClass: 'bg-orange-50 text-orange-600',
+      };
+    }
+
+    return {
+      label: "\uae30\ud0c0",
+      fullLabel: "\ube14\ub8e8\ud578\uc988",
+      badgeClass: 'bg-slate-100 text-slate-500',
+    };
+  };
+
+  const getShopKey = (shop) => {
+    return shop.id || `${shop.name}-${shop.addr}`;
+  };
+
+  const getShortAddress = (shop) => {
+    const rawAddress = shop.addr || '';
+    const parts = rawAddress.split(/\s+/).filter(Boolean);
+
+    const rawCity = shop.city || parts[0] || '';
+    const shortCity = cityShortMap[rawCity] || rawCity.replace("\ud2b9\ubcc4\uc2dc", "").replace("\uad11\uc5ed\uc2dc", "").replace("\ud2b9\ubcc4\uc790\uce58\uc2dc", "").replace("\ub3c4", "");
+
+    const district = parts.find((part) => part.endsWith("\uad6c") || part.endsWith("\uad70") || part.endsWith("\uc2dc")) || '';
+
+    const dongMatch = rawAddress.match(/\(([^)]+)\)/);
+    const dong = dongMatch?.[1] || parts.find((part) => part.endsWith("\ub3d9") || part.endsWith("\uc74d") || part.endsWith("\uba74")) || '';
+
+    return [shortCity, district, dong].filter(Boolean).join(' ');
+  };
+
+  const filteredShops = useMemo(() => {
+    const keyword = searchKeyword.trim().toLowerCase();
+
+    const result = bluehandsShops.filter((shop) => {
+      const typeMatched =
+        selectedShopType === 'all' || shop.type === selectedShopType;
+
+      const keywordMatched =
+        !keyword ||
+        `${shop.name} ${shop.addr} ${shop.city} ${shop.phone} ${shop.typeLabel}`
+          .toLowerCase()
+          .includes(keyword);
+
+      return typeMatched && keywordMatched;
+    });
+
+    if (sortMode === 'distance') {
+      return [...result].sort((a, b) => {
+        const cityA = a.city || '';
+        const cityB = b.city || '';
+        const nameA = a.name || '';
+        const nameB = b.name || '';
+        return cityA.localeCompare(cityB, 'ko') || nameA.localeCompare(nameB, 'ko');
+      });
+    }
+
+    return result;
+  }, [bluehandsShops, searchKeyword, selectedShopType, sortMode]);
+
+  const visibleShops = filteredShops.slice(0, 50);
+
+  const makeExternalMapQuery = (shop, service) => {
+    const shopName = shop?.name || '';
+    const shopAddress = shop?.addr || '';
+
+    // ???/???? ???+??? ???? ?? ?? ??? ? ??????.
+    // ??? ???+?? ??? ??? ? ?????.
+    if (service === 'kakao' || service === 'naver') {
+      return shopAddress || shopName;
+    }
+
+    return `${shopName} ${shopAddress}`.trim();
+  };
+
+  const openMapSearch = (shop, service) => {
+    const query = encodeURIComponent(makeExternalMapQuery(shop, service));
+
+    const urlMap = {
+      naver: `https://map.naver.com/p/search/${query}`,
+      kakao: `https://map.kakao.com/link/search/${query}`,
+      google: `https://www.google.com/maps/search/?api=1&query=${query}`,
+    };
+
+    window.open(urlMap[service], '_blank');
+  };
+
+  return (
+    <div className="h-full flex flex-col bg-slate-50">
+      <div className="relative flex-1 min-h-[320px] bg-blue-50">
+        <iframe
+          title="map"
+          src="https://maps.google.com/maps?q=37.5665,126.9780&z=12&output=embed&hl=ko"
+          className="w-full h-full border-none"
+          loading="lazy"
+        />
+
+        <button
+          type="button"
+          className="absolute right-5 top-5 z-20 w-14 h-14 rounded-2xl bg-white shadow-xl border border-slate-100 flex items-center justify-center"
+          aria-label="current location"
+        >
+          <LocateFixed className="w-7 h-7 text-blue-600" />
+        </button>
+
+        <div className="absolute left-5 right-5 top-5 z-20">
+          <div className="flex items-center bg-white/90 backdrop-blur-md border border-white/70 rounded-full px-4 py-3 shadow-xl">
+            <Search className="w-6 h-6 text-slate-400 mr-2 shrink-0" />
+
+            <input
+              value={searchKeyword}
+              onChange={(event) => setSearchKeyword(event.target.value)}
+              placeholder={TEXT.searchPlaceholder}
+              className="flex-1 outline-none bg-transparent text-sm font-bold text-slate-700 placeholder:text-slate-400"
+            />
+
+            {searchKeyword && (
+              <button
+                type="button"
+                onClick={() => setSearchKeyword('')}
+                className="ml-2 w-8 h-8 rounded-full bg-slate-100/90 flex items-center justify-center"
+                aria-label="clear search"
+              >
+                <X className="w-4 h-4 text-slate-500" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-t-[40px] -mt-10 shadow-2xl z-20 space-y-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-2xl font-black text-slate-900">{TEXT.title}</h2>
+
+            <span className="px-2 py-1 rounded-lg text-[11px] font-black bg-amber-50 text-amber-700">
+              {TEXT.official}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowBluehandsHelp(true)}
+            className="w-7 h-7 rounded-full bg-slate-100 text-slate-400 font-black text-sm flex items-center justify-center shrink-0"
+            aria-label="bluehands help"
+          >
+            ?
+          </button>
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {[
+            { id: 'all', label: TEXT.all },
+            { id: 'specialist', label: TEXT.specialist },
+            { id: 'general', label: TEXT.general },
+            { id: 'hitech', label: TEXT.hitech },
+          ].map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setSelectedShopType(item.id)}
+              className={`px-4 py-2 rounded-2xl text-sm font-black whitespace-nowrap border-2 transition-all ${
+                selectedShopType === item.id
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-slate-500 border-slate-100'
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => setSortMode('distance')}
+            className={`px-4 py-2 rounded-2xl text-sm font-black whitespace-nowrap border-2 transition-all ${
+              sortMode === 'distance'
+                ? 'bg-slate-900 text-white border-slate-900'
+                : 'bg-white text-slate-500 border-slate-100'
+            }`}
+          >
+            {TEXT.distanceSort}
+          </button>
+        </div>
+
+        <p className="text-xs font-bold text-slate-400">
+          {TEXT.resultPrefix} {filteredShops.length.toLocaleString()}{TEXT.resultSuffix}
+        </p>
+
+        <div className="border-2 border-slate-100 rounded-2xl overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setIsOilGuideOpen((prev) => !prev)}
+            className="w-full px-4 py-3 flex items-center justify-between bg-white"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+                <Droplet className="w-4 h-4 text-blue-600" />
+              </div>
+              <span className="font-black text-slate-800">{TEXT.oilGuide}</span>
+            </div>
+
+            <ChevronDown
+              className={`w-5 h-5 text-slate-500 transition-transform ${isOilGuideOpen ? 'rotate-180' : ''}`}
+            />
+          </button>
+
+          {isOilGuideOpen && (
+            <div className="px-5 pb-4 pt-1 text-sm text-slate-600 leading-relaxed bg-slate-50">
+              <p className="font-bold mb-2">{TEXT.oilText1}</p>
+              <ul className="space-y-2 list-disc pl-5">
+                <li>{TEXT.oilText2}</li>
+                <li>{TEXT.oilText3}</li>
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+          {bluehandsLoading && (
+            <div className="p-5 text-center bg-white rounded-2xl border-2 border-slate-100">
+              <p className="font-black text-blue-600">{TEXT.loading}</p>
+            </div>
+          )}
+
+          {bluehandsError && (
+            <div className="p-5 text-center bg-red-50 rounded-2xl border-2 border-red-100">
+              <p className="font-black text-red-600">{TEXT.loadError}</p>
+              <p className="text-xs text-red-400 mt-1">{bluehandsError}</p>
+            </div>
+          )}
+
+          {!bluehandsLoading && !bluehandsError && visibleShops.length === 0 && (
+            <div className="p-5 text-center bg-white rounded-2xl border-2 border-slate-100">
+              <p className="font-black text-slate-700">{TEXT.noResult}</p>
+            </div>
+          )}
+
+          {!bluehandsLoading && !bluehandsError && visibleShops.map((shop) => {
+            const meta = getTypeMeta(shop.type);
+            const shopKey = getShopKey(shop);
+            const isAddressOpen = Boolean(expandedAddressIds[shopKey]);
+
+            return (
+              <div
+                key={shopKey}
+                onClick={() => setSelectedShop(shop)}
+                className="p-5 rounded-3xl border-2 border-slate-100 bg-white cursor-pointer active:scale-[0.99] transition-transform shadow-sm"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2 flex-wrap min-w-0">
+                        <h4 className="font-black text-slate-900 text-lg leading-tight">
+                          {shop.name}
+                        </h4>
+
+                        <span className={`px-2 py-1 rounded-lg text-[11px] font-black ${meta.badgeClass}`}>
+                          {meta.label}
+                        </span>
+                      </div>
+
+                      <ChevronRight className="w-5 h-5 text-slate-300 shrink-0 mt-1" />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setExpandedAddressIds((prev) => ({
+                          ...prev,
+                          [shopKey]: !prev[shopKey],
+                        }));
+                      }}
+                      className="mt-2 flex items-center gap-1 text-sm text-slate-500 font-bold text-left"
+                    >
+                      <span>{isAddressOpen ? shop.addr : getShortAddress(shop)}</span>
+                      <ChevronDown className={`w-4 h-4 transition-transform ${isAddressOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {isAddressOpen && (
+                      <p className="mt-1 text-xs text-slate-400 font-medium leading-relaxed">
+                        {shop.addr}
+                      </p>
+                    )}
+
+                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                      {shop.phone && (
+                        <p className="text-slate-400 text-xs font-bold">
+                          {shop.phone}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {showBluehandsHelp && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000] flex items-end justify-center">
+          <div className="bg-white w-full max-w-md rounded-t-[36px] p-7 space-y-5">
+            <div className="flex justify-between items-start gap-4">
+              <div>
+                <h3 className="text-2xl font-black text-slate-900">{TEXT.helpTitle}</h3>
+                <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+                  {TEXT.helpIntro}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowBluehandsHelp(false)}
+                className="p-2 bg-slate-100 rounded-full shrink-0"
+              >
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-700 text-sm font-bold">
+                {TEXT.helpSpecialist}
+              </div>
+              <div className="p-4 rounded-2xl bg-blue-50 text-blue-700 text-sm font-bold">
+                {TEXT.helpGeneral}
+              </div>
+              <div className="p-4 rounded-2xl bg-orange-50 text-orange-700 text-sm font-bold">
+                {TEXT.helpHitech}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedShop && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1000] flex items-end justify-center">
+          <div className="bg-white w-full max-w-md rounded-t-[40px] p-8 space-y-6">
+            <div className="flex justify-between items-start gap-4">
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-2xl font-black">{selectedShop.name}</h3>
+
+                  <span className={`px-2 py-1 rounded-lg text-[11px] font-black ${getTypeMeta(selectedShop.type).badgeClass}`}>
+                    {getTypeMeta(selectedShop.type).fullLabel}
+                  </span>
+                </div>
+
+                <p className="text-slate-500 mt-2">{selectedShop.addr}</p>
+
+                {selectedShop.phone && (
+                  <p className="text-blue-600 font-black mt-1">{selectedShop.phone}</p>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedShop(null)}
+                className="p-2 bg-slate-100 rounded-full shrink-0"
+              >
+                <X />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <button
+                type="button"
+                onClick={() => openMapSearch(selectedShop, 'naver')}
+                className="p-4 bg-emerald-500 text-white font-bold rounded-2xl"
+              >
+                {TEXT.naver}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => openMapSearch(selectedShop, 'kakao')}
+                className="p-4 bg-[#FEE500] text-black font-bold rounded-2xl"
+              >
+                {TEXT.kakao}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => openMapSearch(selectedShop, 'google')}
+                className="p-4 bg-white border-2 border-slate-100 font-bold rounded-2xl"
+              >
+                {TEXT.google}
+              </button>
+            </div>
+
+            {selectedShop.officialPage && (
+              <button
+                type="button"
+                onClick={() => window.open(selectedShop.officialPage, '_blank')}
+                className="w-full py-5 bg-blue-600 text-white rounded-3xl font-bold shadow-xl shadow-blue-100"
+              >
+                {TEXT.reservation}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 const styleTag = document.createElement('style');
 styleTag.innerHTML = `

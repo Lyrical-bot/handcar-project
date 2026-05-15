@@ -10,3 +10,8 @@ _local_backups/
 *.saved-*
 src/*.backup*
 src/*.saved-*
+
+# local backups
+_local_backups/
+*.backup*
+
