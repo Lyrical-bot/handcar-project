@@ -8,10 +8,10 @@ import {
 } from 'lucide-react';
 
 export default function PhotoGuideScreen({
-  onClose = () => {},
-  onStart = () => {},
+  onClose = () => { },
+  onStart = () => { },
   hideGuideForWeek = false,
-  setHideGuideForWeek = () => {},
+  setHideGuideForWeek = () => { },
 }) {
   const handleCheckWeek = (checked) => {
     setHideGuideForWeek(checked);
@@ -120,9 +120,8 @@ function GuideSectionTitle({ type, title }) {
   return (
     <div className="flex items-center gap-3">
       <div
-        className={`w-10 h-10 rounded-full flex items-center justify-center ${
-          isSuccess ? 'bg-emerald-500' : 'bg-red-500'
-        }`}
+        className={`w-10 h-10 rounded-full flex items-center justify-center ${isSuccess ? 'bg-emerald-500' : 'bg-red-500'
+          }`}
       >
         {isSuccess ? (
           <CheckCircle className="w-7 h-7 text-white stroke-[3]" />
@@ -146,9 +145,8 @@ function DashboardSvg({ mode = 'correct' }) {
   return (
     <svg
       viewBox="0 0 760 300"
-      className={`w-full h-auto block ${
-        isDark ? 'brightness-[0.28]' : ''
-      } ${isBlur ? 'blur-[3px]' : ''}`}
+      className={`w-full h-auto block ${isDark ? 'brightness-[0.28]' : ''
+        } ${isBlur ? 'blur-[3px]' : ''}`}
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
