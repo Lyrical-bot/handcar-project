@@ -6,52 +6,77 @@ module.exports = async function (context, req) {
     context.res = {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
-      body: {
-        error: 'Missing Azure Custom Vision configuration.',
-      },
+      body: { error: 'Missing Azure Custom Vision configuration.' },
     };
     return;
   }
 
-  try {
-    const imageBuffer = req.body;
+  const imageBuffer = req.body;
+  if (!imageBuffer || imageBuffer.length === 0) {
+    context.res = {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+      body: { error: 'Image payload is required.' },
+    };
+    return;
+  }
 
-    if (!imageBuffer || imageBuffer.length === 0) {
-      context.res = {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-        body: {
-          error: 'Image payload is required.',
-        },
-      };
-      return;
-    }
+  const https = require('https');
 
-    const response = await fetch(predictionUrl, {
+  return new Promise((resolve, reject) => {
+    const url = new URL(predictionUrl);
+    
+    const options = {
+      hostname: url.hostname,
+      port: 443,
+      path: url.pathname + url.search,
       method: 'POST',
       headers: {
         'Prediction-Key': predictionKey,
         'Content-Type': 'application/octet-stream',
-      },
-      body: imageBuffer,
+        'Content-Length': imageBuffer.length
+      }
+    };
+
+    const request = https.request(options, (response) => {
+      let data = '';
+
+      response.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      response.on('end', () => {
+        try {
+          const parsedData = data ? JSON.parse(data) : {};
+          context.res = {
+            status: response.statusCode,
+            headers: { 'Content-Type': 'application/json' },
+            body: parsedData,
+          };
+          resolve();
+        } catch (e) {
+          context.log.error('Parse error:', e);
+          context.res = {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+            body: { error: 'Failed to parse Custom Vision response.' },
+          };
+          resolve();
+        }
+      });
     });
 
-    const responseText = await response.text();
-    const data = responseText ? JSON.parse(responseText) : {};
+    request.on('error', (error) => {
+      context.log.error('Custom Vision proxy failed:', error);
+      context.res = {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+        body: { error: 'Failed to call Azure Custom Vision.' },
+      };
+      resolve();
+    });
 
-    context.res = {
-      status: response.status,
-      headers: { 'Content-Type': 'application/json' },
-      body: data,
-    };
-  } catch (error) {
-    context.log.error('Custom Vision proxy failed', error);
-    context.res = {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-      body: {
-        error: 'Failed to call Azure Custom Vision.',
-      },
-    };
-  }
+    request.write(imageBuffer);
+    request.end();
+  });
 };
