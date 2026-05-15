@@ -2,16 +2,16 @@ import React from 'react';
 import {
   Camera,
   ChevronLeft,
-  CheckCircle,
-  X,
+  CheckCircle2,
+  XCircle,
   Lightbulb,
 } from 'lucide-react';
 
 export default function PhotoGuideScreen({
-  onClose = () => { },
-  onStart = () => { },
+  onClose = () => {},
+  onStart = () => {},
   hideGuideForWeek = false,
-  setHideGuideForWeek = () => { },
+  setHideGuideForWeek = () => {},
 }) {
   const handleCheckWeek = (checked) => {
     setHideGuideForWeek(checked);
@@ -25,50 +25,56 @@ export default function PhotoGuideScreen({
   };
 
   return (
-    <div className="absolute inset-0 z-[999] bg-white flex flex-col">
-      <header className="bg-white px-5 pt-7 pb-5 border-b flex items-center justify-center relative shrink-0">
+    <div className="absolute inset-0 z-[999] bg-white flex flex-col font-['Pretendard']">
+      {/* 헤더 */}
+      <header className="bg-white px-5 pt-4 pb-4 border-b flex items-center justify-center relative shrink-0">
         <button
           type="button"
           onClick={onClose}
-          className="absolute left-4 top-7 p-2 rounded-full hover:bg-slate-100"
+          className="absolute left-4 top-4 p-2 rounded-full hover:bg-slate-100"
+          aria-label="뒤로가기"
         >
-          <ChevronLeft className="w-8 h-8 text-slate-950 stroke-[3]" />
+          <ChevronLeft className="w-8 h-8 text-slate-950 stroke-[2.6]" />
         </button>
 
         <div className="text-center">
-          <h1 className="text-[28px] leading-tight font-black tracking-[-0.04em] text-slate-950">
+          <h1 className="text-[24px] leading-none font-extrabold tracking-[-0.04em] text-slate-950">
             계기판 촬영 가이드
           </h1>
-          <p className="mt-2 text-[15px] font-semibold text-slate-500">
+          <p className="mt-3 text-[14px] leading-none font-medium text-slate-500 tracking-[-0.02em]">
             정확한 분석을 위해 아래 예시를 확인해 주세요
           </p>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-6 pt-7 pb-40 space-y-7">
+      {/* 본문 */}
+      <main className="flex-1 overflow-y-auto px-5 pt-5 pb-36 space-y-7">
+        {/* 올바른 촬영 */}
         <section className="space-y-4">
-          <GuideSectionTitle type="success" title="올바른 촬영" />
+          <GuideSectionTitle
+            title="올바른 촬영"
+            icon={<CheckCircle2 className="w-8 h-8 text-emerald-500" />}
+          />
 
-          <div className="relative bg-white rounded-[26px] border-2 border-emerald-500 p-3 shadow-[0_14px_35px_rgba(16,185,129,0.12)]">
-            <div className="absolute -top-3 -left-3 w-12 h-12 rounded-full bg-emerald-500 border-4 border-white flex items-center justify-center z-10 shadow-md">
-              <CheckCircle className="w-7 h-7 text-white stroke-[3]" />
-            </div>
-
-            <div className="rounded-[20px] overflow-hidden bg-slate-950">
+          <div className="rounded-[24px] border-2 border-emerald-500 bg-white p-3 shadow-[0_10px_24px_rgba(16,185,129,0.08)]">
+            <div className="overflow-hidden rounded-[18px] bg-slate-950">
               <DashboardSvg mode="correct" />
             </div>
 
-            <div className="mt-3 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center gap-2 px-3">
-              <CheckCircle className="w-6 h-6 text-emerald-500 stroke-[3]" />
-              <p className="text-[15px] font-black text-slate-800 tracking-[-0.03em]">
+            <div className="mt-3 rounded-2xl bg-emerald-50 px-4 py-4 text-center">
+              <p className="text-[16px] font-extrabold text-emerald-700 tracking-[-0.03em]">
                 계기판 전체가 선명하게, 정면에서 촬영
               </p>
             </div>
           </div>
         </section>
 
+        {/* 피해야 할 촬영 */}
         <section className="space-y-4">
-          <GuideSectionTitle type="danger" title="피해야 할 촬영" />
+          <GuideSectionTitle
+            title="피해야 할 촬영"
+            icon={<XCircle className="w-8 h-8 text-red-500" />}
+          />
 
           <div className="grid grid-cols-3 gap-3">
             <WrongPhotoCard mode="dark" label="너무 어두움" />
@@ -77,35 +83,53 @@ export default function PhotoGuideScreen({
           </div>
         </section>
 
-        <section className="rounded-[24px] bg-blue-50/80 border border-blue-100 p-5 space-y-3">
-          <div className="flex items-center gap-2 mb-2">
-            <Lightbulb className="w-6 h-6 text-blue-600 stroke-[2.5]" />
-            <h2 className="text-lg font-black text-blue-600">촬영 팁</h2>
+        {/* 촬영 팁 */}
+        <section className="rounded-[22px] border border-blue-100 bg-blue-50/80 p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <Lightbulb className="w-5 h-5 text-blue-600 stroke-[2.2]" />
+            <h2 className="text-[18px] font-extrabold text-blue-600 tracking-[-0.03em]">
+              촬영 팁
+            </h2>
           </div>
 
-          <GuideTip number="1" text="계기판 전체가 화면에 들어오도록 정면에서 촬영해 주세요." />
-          <GuideTip number="2" text="햇빛·실내등 반사가 없는 각도를 찾아 촬영해 주세요." />
-          <GuideTip number="3" text="손을 고정하고 흔들리지 않게 촬영하세요." />
-          <GuideTip number="4" text="엔진을 켠 상태에서 경고등이 켜진 채로 찍어주세요." />
+          <div className="space-y-3">
+            <GuideTip
+              number="1"
+              text="계기판 전체가 화면에 들어오도록 정면에서 촬영해 주세요."
+            />
+            <GuideTip
+              number="2"
+              text="햇빛·실내등 반사가 없는 각도를 찾아 촬영해 주세요."
+            />
+            <GuideTip
+              number="3"
+              text="손을 고정하고 흔들리지 않게 촬영하세요."
+            />
+            <GuideTip
+              number="4"
+              text="엔진을 켠 상태에서 경고등이 켜진 채로 찍어주세요."
+            />
+          </div>
         </section>
       </main>
 
-      <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t px-6 pt-5 pb-6 space-y-4">
+      {/* 하단 고정 */}
+      <div className="absolute bottom-0 left-0 right-0 border-t bg-white/95 backdrop-blur px-5 pt-4 pb-4 space-y-3">
         <button
           type="button"
           onClick={onStart}
-          className="w-full h-[72px] bg-blue-600 text-white rounded-[24px] font-black shadow-xl shadow-blue-200 active:scale-95 transition-transform text-xl flex items-center justify-center gap-3"
+          className="w-full h-[66px] rounded-[24px] bg-blue-600 text-white text-[19px] font-extrabold shadow-xl shadow-blue-200 active:scale-[0.98] transition-transform flex items-center justify-center gap-3 tracking-[-0.03em]"
         >
-          <Camera className="w-7 h-7 stroke-[2.5]" />
+          <Camera className="w-6 h-6 stroke-[2.2]" />
           사진 촬영 시작
         </button>
 
-        <label className="flex items-center justify-center gap-3 text-slate-500 font-bold text-base">
+        <label className="flex items-center justify-center gap-2 text-slate-500 text-[13px] font-medium tracking-[-0.02em]">
           <input
             type="checkbox"
             checked={hideGuideForWeek}
             onChange={(e) => handleCheckWeek(e.target.checked)}
-            className="w-7 h-7 accent-blue-600"
+            className="w-4 h-4 accent-blue-600"
           />
           일주일 동안 보지 않기
         </label>
@@ -114,135 +138,140 @@ export default function PhotoGuideScreen({
   );
 }
 
-function GuideSectionTitle({ type, title }) {
-  const isSuccess = type === 'success';
-
+function GuideSectionTitle({ icon, title }) {
   return (
     <div className="flex items-center gap-3">
-      <div
-        className={`w-10 h-10 rounded-full flex items-center justify-center ${isSuccess ? 'bg-emerald-500' : 'bg-red-500'
-          }`}
-      >
-        {isSuccess ? (
-          <CheckCircle className="w-7 h-7 text-white stroke-[3]" />
-        ) : (
-          <X className="w-7 h-7 text-white stroke-[3]" />
-        )}
-      </div>
-
-      <h2 className="text-[22px] font-black text-slate-950 tracking-[-0.04em]">
+      <div className="shrink-0">{icon}</div>
+      <h2 className="text-[21px] font-extrabold text-slate-950 tracking-[-0.04em]">
         {title}
       </h2>
     </div>
   );
 }
 
-function DashboardSvg({ mode = 'correct' }) {
+function WrongPhotoCard({ mode, label }) {
+  return (
+    <div className="bg-white">
+      <div className="overflow-hidden rounded-[14px] border-2 border-red-400 bg-slate-950">
+        <DashboardSvg mode={mode} compact />
+      </div>
+
+      <div className="pt-3 text-center">
+        <p className="text-[14px] font-bold text-slate-700 tracking-[-0.03em] break-keep">
+          {label}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function GuideTip({ number, text }) {
+  return (
+    <div className="flex gap-3 border-b border-dashed border-blue-200 pb-3 last:border-b-0 last:pb-0">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white text-[13px] font-extrabold">
+        {number}
+      </div>
+      <p className="pt-[1px] pr-1 text-[14px] leading-[1.55] font-medium text-slate-700 tracking-[-0.02em] break-keep">
+        {text}
+      </p>
+    </div>
+  );
+}
+
+function DashboardSvg({ mode = 'correct', compact = false }) {
   const isDark = mode === 'dark';
   const isBlur = mode === 'blur';
   const isGlare = mode === 'glare';
 
   return (
     <svg
-      viewBox="0 0 760 300"
-      className={`w-full h-auto block ${isDark ? 'brightness-[0.28]' : ''
-        } ${isBlur ? 'blur-[3px]' : ''}`}
+      viewBox="0 0 760 320"
+      className={`block w-full h-auto ${isDark ? 'brightness-[0.28]' : ''} ${
+        isBlur ? 'blur-[2.8px]' : ''
+      }`}
       xmlns="http://www.w3.org/2000/svg"
+      preserveAspectRatio="xMidYMid meet"
     >
       <defs>
-        <radialGradient id={`dashBg-${mode}`} cx="50%" cy="40%" r="80%">
-          <stop offset="0%" stopColor="#1e293b" />
+        <radialGradient id={`bg-${mode}`} cx="50%" cy="40%" r="75%">
+          <stop offset="0%" stopColor="#162133" />
           <stop offset="100%" stopColor="#020617" />
         </radialGradient>
 
         <linearGradient id={`glare-${mode}`} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="rgba(255,255,255,0)" />
-          <stop offset="45%" stopColor="rgba(255,255,255,0.75)" />
+          <stop offset="48%" stopColor="rgba(255,255,255,0.84)" />
           <stop offset="100%" stopColor="rgba(255,255,255,0)" />
         </linearGradient>
       </defs>
 
-      <rect width="760" height="300" rx="28" fill={`url(#dashBg-${mode})`} />
+      <rect x="0" y="0" width="760" height="320" rx="28" fill={`url(#bg-${mode})`} />
 
       <path
-        d="M30 250 C80 60, 180 30, 380 30 C580 30, 690 60, 730 250 Z"
-        fill="#111827"
-        opacity="0.9"
+        d="M35 250 C78 66, 176 28, 380 28 C584 28, 682 66, 725 250 Z"
+        fill="#0f172a"
+        opacity="0.97"
       />
 
-      <Gauge cx="210" cy="155" radius="93" label="x1000 rpm" needleAngle={-90} />
-      <Gauge cx="550" cy="155" radius="93" label="km/h" needleAngle={-42} speed />
+      <Gauge cx="210" cy="165" radius="105" type="rpm" compact={compact} />
+      <Gauge cx="550" cy="165" radius="105" type="speed" compact={compact} />
 
       <rect
-        x="335"
-        y="80"
+        x="336"
+        y="86"
         width="90"
-        height="145"
-        rx="6"
-        fill="#0f172a"
-        stroke="#475569"
+        height="146"
+        rx="5"
+        fill="#091220"
+        stroke="#4b5563"
         strokeWidth="2"
       />
 
-      <text x="350" y="108" fill="#e2e8f0" fontSize="26" fontWeight="800">
+      <text x="348" y="114" fill="#f8fafc" fontSize="28" fontWeight="800">
         D
       </text>
 
-      <rect x="366" y="128" width="28" height="55" rx="14" fill="#cbd5e1" opacity="0.9" />
-      <rect
-        x="360"
-        y="145"
-        width="40"
-        height="24"
-        rx="6"
-        fill="none"
-        stroke="#e2e8f0"
-        strokeWidth="2"
-      />
+      {/* 간단한 차량 아이콘 */}
+      <rect x="370" y="130" width="24" height="58" rx="12" fill="#cbd5e1" opacity="0.96" />
+      <rect x="362" y="146" width="40" height="24" rx="6" fill="none" stroke="#e2e8f0" strokeWidth="2" />
+      <line x1="370" y1="138" x2="394" y2="138" stroke="#94a3b8" strokeWidth="2" />
+      <line x1="370" y1="180" x2="394" y2="180" stroke="#94a3b8" strokeWidth="2" />
 
-      <text x="350" y="210" fill="#e2e8f0" fontSize="15" fontWeight="700">
+      <text x="344" y="223" fill="#f8fafc" fontSize="14" fontWeight="700">
         25℃
       </text>
-      <text x="388" y="210" fill="#e2e8f0" fontSize="15" fontWeight="700">
+      <text x="386" y="223" fill="#f8fafc" fontSize="14" fontWeight="700">
         123456 km
       </text>
 
-      <path
-        d="M310 48 l-18 16 h13 v18 h10 v-18 h13z"
-        fill="#334155"
-        opacity="0.45"
-        transform="rotate(-90 310 65)"
-      />
-      <path
-        d="M450 48 l18 16 h-13 v18 h-10 v-18 h-13z"
-        fill="#334155"
-        opacity="0.45"
-        transform="rotate(90 450 65)"
-      />
+      {/* 상단 화살표 */}
+      <path d="M302 54 h20 l-8 -8 m8 8 l-8 8" stroke="#334155" strokeWidth="6" fill="none" opacity="0.72" />
+      <path d="M438 54 h20 l-8 -8 m8 8 l-8 8" stroke="#334155" strokeWidth="6" fill="none" opacity="0.72" />
 
-      <path d="M685 203 q10 -10 20 0" stroke="#22c55e" strokeWidth="3" fill="none" />
-      <path d="M685 213 q10 -10 20 0" stroke="#22c55e" strokeWidth="3" fill="none" />
-      <line x1="680" y1="198" x2="680" y2="218" stroke="#22c55e" strokeWidth="3" />
-      <line x1="710" y1="198" x2="710" y2="218" stroke="#22c55e" strokeWidth="3" />
+      {/* 우측 초록 표시등 */}
+      <path d="M688 214 q10 -10 20 0" stroke="#22c55e" strokeWidth="3" fill="none" />
+      <path d="M688 224 q10 -10 20 0" stroke="#22c55e" strokeWidth="3" fill="none" />
+      <line x1="683" y1="209" x2="683" y2="229" stroke="#22c55e" strokeWidth="3" />
+      <line x1="713" y1="209" x2="713" y2="229" stroke="#22c55e" strokeWidth="3" />
 
       {isGlare && (
         <>
           <rect
-            x="-60"
+            x="-35"
             y="-80"
-            width="200"
+            width="185"
             height="520"
             fill={`url(#glare-${mode})`}
-            transform="rotate(18 240 150)"
-            opacity="0.9"
+            transform="rotate(18 180 150)"
+            opacity="0.92"
           />
           <rect
-            x="120"
+            x="102"
             y="-80"
-            width="110"
+            width="92"
             height="520"
             fill="white"
-            transform="rotate(18 240 150)"
+            transform="rotate(18 180 150)"
             opacity="0.18"
           />
         </>
@@ -251,25 +280,30 @@ function DashboardSvg({ mode = 'correct' }) {
   );
 }
 
-function Gauge({ cx, cy, radius, label, needleAngle, speed = false }) {
-  const numbers = speed
+function Gauge({ cx, cy, radius, type = 'rpm', compact = false }) {
+  const isSpeed = type === 'speed';
+
+  const numbers = isSpeed
     ? ['0', '20', '40', '60', '80', '100', '120', '140', '160', '180', '200', '220', '240']
     : ['0', '1', '2', '3', '4', '5', '6', '7', '8'];
 
   const startAngle = 135;
   const endAngle = 405;
 
+  const label = isSpeed ? 'km/h' : 'x1000 rpm';
+  const needleAngle = isSpeed ? -38 : -87;
+
   return (
     <g>
-      <circle cx={cx} cy={cy} r={radius} fill="#111827" stroke="#9ca3af" strokeWidth="5" />
-      <circle cx={cx} cy={cy} r={radius - 25} fill="none" stroke="#475569" strokeWidth="2" />
+      <circle cx={cx} cy={cy} r={radius} fill="#0b1220" stroke="#d1d5db" strokeWidth="5" />
+      <circle cx={cx} cy={cy} r={radius - 28} fill="none" stroke="#475569" strokeWidth="2" />
 
       <text
         x={cx}
-        y={cy - radius + 28}
+        y={cy - radius + 32}
         textAnchor="middle"
-        fill="#cbd5e1"
-        fontSize="14"
+        fill="#e5e7eb"
+        fontSize={compact ? '11' : '14'}
         fontWeight="700"
       >
         {label}
@@ -278,8 +312,8 @@ function Gauge({ cx, cy, radius, label, needleAngle, speed = false }) {
       {numbers.map((num, index) => {
         const angle = startAngle + ((endAngle - startAngle) / (numbers.length - 1)) * index;
         const rad = (angle * Math.PI) / 180;
-        const tx = cx + Math.cos(rad) * (radius - 28);
-        const ty = cy + Math.sin(rad) * (radius - 28) + 5;
+        const tx = cx + Math.cos(rad) * (radius - 31);
+        const ty = cy + Math.sin(rad) * (radius - 31) + 5;
 
         return (
           <text
@@ -288,7 +322,7 @@ function Gauge({ cx, cy, radius, label, needleAngle, speed = false }) {
             y={ty}
             textAnchor="middle"
             fill="#f8fafc"
-            fontSize={speed ? '15' : '22'}
+            fontSize={compact ? (isSpeed ? '10' : '14') : isSpeed ? '16' : '20'}
             fontWeight="700"
           >
             {num}
@@ -299,12 +333,15 @@ function Gauge({ cx, cy, radius, label, needleAngle, speed = false }) {
       {[...Array(37)].map((_, index) => {
         const angle = startAngle + ((endAngle - startAngle) / 36) * index;
         const rad = (angle * Math.PI) / 180;
-        const outer = radius - 9;
-        const inner = index % 3 === 0 ? radius - 18 : radius - 14;
+        const outer = radius - 10;
+        const inner = index % 3 === 0 ? radius - 20 : radius - 15;
+
         const x1 = cx + Math.cos(rad) * outer;
         const y1 = cy + Math.sin(rad) * outer;
         const x2 = cx + Math.cos(rad) * inner;
         const y2 = cy + Math.sin(rad) * inner;
+
+        const redZone = !isSpeed && index > 28;
 
         return (
           <line
@@ -313,8 +350,8 @@ function Gauge({ cx, cy, radius, label, needleAngle, speed = false }) {
             y1={y1}
             x2={x2}
             y2={y2}
-            stroke={index > 28 && !speed ? '#ef4444' : '#e5e7eb'}
-            strokeWidth={index % 3 === 0 ? '3' : '1.5'}
+            stroke={redZone ? '#ef4444' : '#e5e7eb'}
+            strokeWidth={index % 3 === 0 ? '3' : '1.4'}
             strokeLinecap="round"
           />
         );
@@ -324,51 +361,15 @@ function Gauge({ cx, cy, radius, label, needleAngle, speed = false }) {
         x1={cx}
         y1={cy}
         x2={cx}
-        y2={cy - radius + 25}
+        y2={cy - radius + 28}
         stroke="#ef4444"
         strokeWidth="5"
         strokeLinecap="round"
         transform={`rotate(${needleAngle} ${cx} ${cy})`}
       />
 
-      <circle cx={cx} cy={cy} r="13" fill="#1e293b" />
-      <circle cx={cx} cy={cy} r="7" fill="#ffffff" />
+      <circle cx={cx} cy={cy} r="16" fill="#111827" />
+      <circle cx={cx} cy={cy} r="7" fill="#1f2937" />
     </g>
-  );
-}
-
-function WrongPhotoCard({ mode, label }) {
-  return (
-    <div className="relative bg-white rounded-[18px] border-2 border-red-500 p-2 shadow-sm overflow-visible">
-      <div className="absolute -top-2 -left-2 w-8 h-8 rounded-full bg-red-500 border-4 border-white flex items-center justify-center z-10">
-        <X className="w-5 h-5 text-white stroke-[3]" />
-      </div>
-
-      <div className="rounded-[13px] overflow-hidden bg-slate-950 h-[86px]">
-        <DashboardSvg mode={mode} />
-      </div>
-
-      <div className="h-10 flex items-center justify-center gap-1.5">
-        <div className="w-5 h-5 rounded-full border-2 border-red-500 flex items-center justify-center shrink-0">
-          <X className="w-3 h-3 text-red-500 stroke-[3]" />
-        </div>
-        <p className="text-[12px] font-black text-slate-700 tracking-[-0.04em]">
-          {label}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function GuideTip({ number, text }) {
-  return (
-    <div className="flex gap-3 border-b border-dashed border-blue-200 last:border-b-0 pb-3 last:pb-0">
-      <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-black shrink-0">
-        {number}
-      </div>
-      <p className="text-[14px] font-bold text-slate-700 leading-relaxed tracking-[-0.03em]">
-        {text}
-      </p>
-    </div>
   );
 }

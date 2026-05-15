@@ -3,3 +3,10 @@ dist/
 .DS_Store
 Thumbs.db
 .vite/
+
+# Local backup files
+_local_backups/
+*.backup*
+*.saved-*
+src/*.backup*
+src/*.saved-*
