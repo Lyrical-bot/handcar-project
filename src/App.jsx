@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import PhotoGuideScreen from './PhotoGuideScreen';
 import { fetchBluehandsData } from './services/api';
 import {
-Camera,
+  Camera,
   MapPin,
   Wrench,
   History,
@@ -1329,11 +1329,10 @@ function MapTab() {
               key={item.id}
               type="button"
               onClick={() => setSelectedShopType(item.id)}
-              className={`px-4 py-2 rounded-2xl text-sm font-black whitespace-nowrap border-2 transition-all ${
-                selectedShopType === item.id
+              className={`px-4 py-2 rounded-2xl text-sm font-black whitespace-nowrap border-2 transition-all ${selectedShopType === item.id
                   ? 'bg-blue-600 text-white border-blue-600'
                   : 'bg-white text-slate-500 border-slate-100'
-              }`}
+                }`}
             >
               {item.label}
             </button>
@@ -1342,11 +1341,10 @@ function MapTab() {
           <button
             type="button"
             onClick={() => setSortMode('distance')}
-            className={`px-4 py-2 rounded-2xl text-sm font-black whitespace-nowrap border-2 transition-all ${
-              sortMode === 'distance'
+            className={`px-4 py-2 rounded-2xl text-sm font-black whitespace-nowrap border-2 transition-all ${sortMode === 'distance'
                 ? 'bg-slate-900 text-white border-slate-900'
                 : 'bg-white text-slate-500 border-slate-100'
-            }`}
+              }`}
           >
             {TEXT.distanceSort}
           </button>
