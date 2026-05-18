@@ -1330,8 +1330,8 @@ function MapTab() {
               type="button"
               onClick={() => setSelectedShopType(item.id)}
               className={`px-4 py-2 rounded-2xl text-sm font-black whitespace-nowrap border-2 transition-all ${selectedShopType === item.id
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-slate-500 border-slate-100'
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-white text-slate-500 border-slate-100'
                 }`}
             >
               {item.label}
@@ -1342,8 +1342,8 @@ function MapTab() {
             type="button"
             onClick={() => setSortMode('distance')}
             className={`px-4 py-2 rounded-2xl text-sm font-black whitespace-nowrap border-2 transition-all ${sortMode === 'distance'
-                ? 'bg-slate-900 text-white border-slate-900'
-                : 'bg-white text-slate-500 border-slate-100'
+              ? 'bg-slate-900 text-white border-slate-900'
+              : 'bg-white text-slate-500 border-slate-100'
               }`}
           >
             {TEXT.distanceSort}
