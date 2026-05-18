@@ -677,6 +677,12 @@ export default function App() {
                   <h2 className="text-2xl font-black">경고등을 찍어주세요</h2>
                   <p className="text-slate-500 font-medium">AI가 실시간으로 분석해드립니다</p>
                 </div>
+
+                <div className="w-full bg-amber-50 border border-amber-200 p-5 rounded-3xl flex items-start gap-3">
+                  <AlertTriangle className="text-amber-500 flex-shrink-0 mt-0.5" size={22} />
+                  <p className={`text-amber-800 leading-relaxed ${f('text-xs', 'text-sm')}`}>자동차관리법 제65조에 따라 필터, 워셔액, 냉각수 등 소모품 자가 정비가 가능합니다. 그 외 부품은 반드시 허가 업체에서 정비하세요.</p>
+                </div>
+                
                 <>
                   {/*
                     기존에는 이 영역이 label + input 구조라서 버튼을 누르면 바로 파일 선택창이 열렸습니다.
