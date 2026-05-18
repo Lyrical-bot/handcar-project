@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PhotoGuideScreen from './PhotoGuideScreen';
+import { fetchBluehandsData } from './services/api';
 import {
 Camera,
   MapPin,
@@ -1134,14 +1135,8 @@ function MapTab() {
   useEffect(() => {
     const loadBluehands = async () => {
       try {
-        const response = await fetch('/data/bluehands.json');
-
-        if (!response.ok) {
-          throw new Error(`bluehands.json load failed: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setBluehandsShops(Array.isArray(data) ? data : []);
+        const data = await fetchBluehandsData();
+        setBluehandsShops(data);
       } catch (error) {
         console.error(error);
         setBluehandsError(error.message);
