@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PhotoGuideScreen from './PhotoGuideScreen';
+import { fetchBluehandsData } from './services/api';
 import {
-  Camera,
+Camera,
   MapPin,
   Wrench,
   History,
@@ -232,9 +233,9 @@ const SHOPS = [
 ];
 
 const DIY_ITEMS = [
-  { id: 'washer', name: '워셔액 보충', level: '초급', pos: { top: '50%', left: '-1%' }, desc: '보닛을 열고 파란색 뚜껑을 찾아 워셔액을 가득 채우세요.', image: 'https://cdn.consumuch.com/news/photo/201708/30298_29268_1038.png' },
-  { id: 'filter', name: '에어컨 필터 교체', level: '초급', desc: '조수석 글로브 박스를 열고 안쪽 덮개를 제거해 필터를 교체하세요.', image: 'https://gear-up3.com/wp-content/uploads/2024/03/%EC%8B%BC%ED%83%80%ED%8E%98-TM-%EC%97%90%EC%96%B4%EC%BB%A8-%ED%95%84%ED%84%B0-%EA%B5%90%EC%B2%B4-%EB%B0%A9%EB%B2%95-1024x705.png' },
-  { id: 'coolant', name: '냉각수 보충', level: '초급', pos: { top: '63%', left: '16%' }, desc: '엔진이 식은 후 냉각수 보조 탱크의 MAX 선까지 보충하세요.', image: 'https://scontent-ssn1-1.cdninstagram.com/v/t51.82787-15/671834424_18407622619199826_1912107646939343223_n.jpg?stp=dst-jpegr_e35_tt6&_nc_cat=100&ig_cache_key=Mzg4MTY2ODI5NzAxNjU1NDIyMg%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0ueHBpZHMuMTQ0MC5oZHIucmVndWxhcl9waG90by5DMyJ9&_nc_ohc=iIPtXgCQ9ggQ7kNvwESnavb&_nc_oc=AdorDkzwKf02hy0E3dzXaW6_7LXNbIoFYNDRHE24guWCMvx1RhNcykZC6i5Vv-p8xj8&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent-ssn1-1.cdninstagram.com&_nc_gid=Ek2H3LYkbJk7a6t6vZBdsg&_nc_ss=7a22e&oh=00_Af4O1o7bjTdDnT-WB2JfpdqQlCHblcuPgzicyWv-cS1vrw&oe=6A1035C9' },
+  { id: 'washer', name: '워셔액 보충', level: '초급', pos: { top: '30%', left: '25%' }, desc: '보닛을 열고 파란색 뚜껑을 찾아 워셔액을 가득 채우세요.' },
+  { id: 'filter', name: '에어컨 필터 교체', level: '초급', pos: { top: '50%', left: '70%' }, desc: '조수석 글로브 박스를 열고 안쪽 덮개를 제거해 필터를 교체하세요.' },
+  { id: 'coolant', name: '냉각수 보충', level: '초급', pos: { top: '25%', left: '65%' }, desc: '엔진이 식은 후 냉각수 보조 탱크의 MAX 선까지 보충하세요.' },
   { id: 'headlight', name: '전조등 교체', level: '중급', pos: { top: '20%', left: '15%' }, desc: '엔진룸 안쪽 전조등 소켓을 돌려 빼고 새 전구로 교체하세요.' },
   { id: 'taillight', name: '후미등 교체', level: '중급', pos: { top: '85%', left: '15%' }, desc: '트렁크 안쪽 커버를 열고 소켓을 분리해 전구를 교체하세요.' },
   { id: 'brake_light', name: '브레이크등 교체', level: '고급', pos: { top: '82%', left: '30%' }, desc: '후미등 뭉치를 분리하여 브레이크 전용 전구를 교체하세요.' },
@@ -871,27 +872,17 @@ export default function App() {
             {diyStep === 4 && selectedDiy && (
               <div className="space-y-6 animate-in slide-in-from-right-4">
                 <div className="relative aspect-video bg-slate-200 rounded-3xl overflow-hidden shadow-inner">
-                  {selectedDiy.image ? (
-                    <img
-                      src={selectedDiy.image}
-                      alt={selectedDiy.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-400 italic">
-                      [차량 정비 위치 이미지 - {selectedDiy.name}]
+                  <div className="w-full h-full flex items-center justify-center text-slate-400 italic">
+                    [차량 정비 위치 이미지 - {selectedDiy.name}]
+                  </div>
+                  <div
+                    className="absolute z-10 animate-bounce"
+                    style={{ top: selectedDiy.pos.top, left: selectedDiy.pos.left }}
+                  >
+                    <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                      <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[10px] border-t-white mt-1"></div>
                     </div>
-                  )}
-                  {selectedDiy.pos && (
-                    <div
-                      className="absolute z-10 animate-bounce"
-                      style={{ top: selectedDiy.pos.top, left: selectedDiy.pos.left }}
-                    >
-                      <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-                        <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[10px] border-t-white mt-1"></div>
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </div>
                 <div className="p-6 bg-white rounded-3xl border-2 border-blue-100 space-y-3">
                   <h3 className="text-xl font-black text-blue-600 flex items-center gap-2">
@@ -1144,14 +1135,8 @@ function MapTab() {
   useEffect(() => {
     const loadBluehands = async () => {
       try {
-        const response = await fetch('/data/bluehands.json');
-
-        if (!response.ok) {
-          throw new Error(`bluehands.json load failed: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setBluehandsShops(Array.isArray(data) ? data : []);
+        const data = await fetchBluehandsData();
+        setBluehandsShops(data);
       } catch (error) {
         console.error(error);
         setBluehandsError(error.message);
@@ -1344,10 +1329,11 @@ function MapTab() {
               key={item.id}
               type="button"
               onClick={() => setSelectedShopType(item.id)}
-              className={`px-4 py-2 rounded-2xl text-sm font-black whitespace-nowrap border-2 transition-all ${selectedShopType === item.id
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white text-slate-500 border-slate-100'
-                }`}
+              className={`px-4 py-2 rounded-2xl text-sm font-black whitespace-nowrap border-2 transition-all ${
+                selectedShopType === item.id
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-slate-500 border-slate-100'
+              }`}
             >
               {item.label}
             </button>
@@ -1356,10 +1342,11 @@ function MapTab() {
           <button
             type="button"
             onClick={() => setSortMode('distance')}
-            className={`px-4 py-2 rounded-2xl text-sm font-black whitespace-nowrap border-2 transition-all ${sortMode === 'distance'
-              ? 'bg-slate-900 text-white border-slate-900'
-              : 'bg-white text-slate-500 border-slate-100'
-              }`}
+            className={`px-4 py-2 rounded-2xl text-sm font-black whitespace-nowrap border-2 transition-all ${
+              sortMode === 'distance'
+                ? 'bg-slate-900 text-white border-slate-900'
+                : 'bg-white text-slate-500 border-slate-100'
+            }`}
           >
             {TEXT.distanceSort}
           </button>
