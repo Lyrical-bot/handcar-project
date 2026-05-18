@@ -22,7 +22,14 @@ import {
   Lightbulb,
   ChevronDown,
   LocateFixed,
-  Droplet
+  Droplet,
+  Type,
+  CheckCircle2,
+  Clock,
+  Mail,
+  MessageCircle,
+  User,
+  LogIn
 } from 'lucide-react';
 
 const AI_PROXY_URL = import.meta.env.VITE_AI_PROXY_URL;
@@ -249,6 +256,7 @@ export default function App() {
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
+  const [isBigFont, setIsBigFont] = useState(false);
   const [collapsedLevels, setCollapsedLevels] = useState({ '중급': false, '고급': false });
   const toggleLevel = (level) => {
     setCollapsedLevels(prev => ({ ...prev, [level]: !prev[level] }));
@@ -289,6 +297,22 @@ export default function App() {
   ]);
   const [newNote, setNewNote] = useState('');
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
+  const f = (small, big) => isBigFont ? big : small;
+
+  const resetDiy = () => {
+    setDiyStep(1); setSelectedBrand('');
+    setSelectedModel(''); setSelectedYear('');
+    setSelectedDiy(null);
+  };
+  const handleTabClick = (tabId) => {
+    if (tabId === 'find') {
+      setImage(null); setResult(null);
+      setShowPhotoGuide(false);
+    }
+    if (tabId === 'diy') resetDiy();
+    setActiveTab(tabId);
+  };
+  const goHome = () => handleTabClick('find');
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 3000);
@@ -426,9 +450,9 @@ export default function App() {
         resultData = makeLocalFastApiResult(apiResult);
       }
 
-      setResult(resultData);
+      setResult(resultData);{
 
-      if (resultData.status !== 'normal') {
+       
         const newRecord = {
           id: Date.now(),
           date: new Date().toLocaleDateString(),
@@ -587,7 +611,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 font-sans text-slate-900 max-w-md mx-auto shadow-2xl relative border-x border-slate-200">
+    <div className={`flex flex-col h-screen bg-slate-50 font-sans text-slate-900 max-w-md mx-auto shadow-2xl relative border-x border-slate-200 ${isBigFont ? 'text-xl' : 'text-base'}`}>
       {/*
         계기판 촬영 가이드 오버레이
         - 메인 화면의 "사진 촬영 및 선택" 버튼을 눌렀을 때 showPhotoGuide가 true가 됩니다.
@@ -609,13 +633,22 @@ export default function App() {
 
       {/* 상단바 */}
       <header className="bg-white px-4 py-4 flex items-center justify-between border-b sticky top-0 z-40">
-        <button onClick={() => { setImage(null); setResult(null); setActiveTab('find'); }} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-          <Home className="w-6 h-6 text-blue-600" />
+        <button onClick={() => handleTabClick('find')} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+          <Home className={`text-blue-600 ${isBigFont ? 'w-8 h-8' : 'w-6 h-6'}`} />
         </button>
-        <h1 className="text-xl font-black text-blue-600 tracking-tighter">HANDS CAR</h1>
-        <button onClick={() => setShowLogin(true)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-          <Settings className="w-6 h-6 text-slate-400" />
-        </button>
+        <h1 className={`font-black text-blue-600 tracking-tighter ${isBigFont ? 'text-2xl' : 'text-xl'}`}>HANDS CAR</h1>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setIsBigFont(!isBigFont)}
+            className={`p-2 rounded-lg transition-colors ${isBigFont ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}
+            title="글자 크기 조절"
+          >
+            <Type className={isBigFont ? 'w-6 h-6' : 'w-5 h-5'} />
+          </button>
+          <button onClick={() => setShowLogin(true)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+            <Settings className={`text-slate-400 ${isBigFont ? 'w-8 h-8' : 'w-6 h-6'}`} />
+          </button>
+        </div>
       </header>
 
       {/* 메인 컨텐츠 영역 */}
@@ -624,12 +657,22 @@ export default function App() {
           <div className="p-6 space-y-6">
             {!image ? (
               <div className="space-y-8 py-10 text-center">
-                <div className="relative inline-block">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (hideGuideForWeek) {
+                      document.getElementById('dashboard-photo-input')?.click();
+                    } else {
+                      setShowPhotoGuide(true);
+                    }
+                  }}
+                  className="relative inline-block cursor-pointer active:scale-95 transition-transform"
+                >
                   <div className="absolute -inset-4 bg-blue-100 rounded-full animate-pulse"></div>
-                  <div className="relative bg-white p-8 rounded-full shadow-lg">
+                  <div className="relative bg-white p-8 rounded-full shadow-lg hover:bg-blue-50">
                     <Camera className="w-16 h-16 text-blue-600" />
                   </div>
-                </div>
+                </button>
                 <div className="space-y-2">
                   <h2 className="text-2xl font-black">경고등을 찍어주세요</h2>
                   <p className="text-slate-500 font-medium">AI가 실시간으로 분석해드립니다</p>
@@ -967,7 +1010,7 @@ export default function App() {
         ].map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => handleTabClick(tab.id)}
             className={`flex flex-col items-center gap-1 min-w-[60px] transition-all ${activeTab === tab.id ? 'text-blue-600 scale-110' : 'text-slate-400'}`}
           >
             <tab.icon className={`w-6 h-6 ${activeTab === tab.id ? 'fill-blue-600/10' : ''}`} />
@@ -1131,6 +1174,23 @@ function MapTab() {
     "\uacbd\uc0c1\ub0a8\ub3c4": "\uacbd\ub0a8",
     "\uc81c\uc8fc\ud2b9\ubcc4\uc790\uce58\ub3c4": "\uc81c\uc8fc",
   };
+  
+  const f = (small, big) => isBigFont ? big : small;
+
+  const resetDiy = () => {
+    setDiyStep(1); setSelectedBrand('');
+    setSelectedModel(''); setSelectedYear('');
+    setSelectedDiy(null);
+  };
+  const handleTabClick = (tabId) => {
+    if (tabId === 'find') {
+      setImage(null); setResult(null);
+      setShowPhotoGuide(false);
+    }
+    if (tabId === 'diy') resetDiy();
+    setActiveTab(tabId);
+  };
+  const goHome = () => handleTabClick('find');
 
   useEffect(() => {
     const loadBluehands = async () => {
