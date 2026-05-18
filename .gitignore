@@ -15,3 +15,5 @@ src/*.saved-*
 _local_backups/
 *.backup*
 
+
+.env.local

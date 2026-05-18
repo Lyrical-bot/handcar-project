@@ -1,6 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import PhotoGuideScreen from './PhotoGuideScreen';
-import { fetchBluehandsData } from './services/api';
+import * as atlas from 'azure-maps-control';
+import 'azure-maps-control/dist/atlas.min.css';
+import {
+fetchBluehandsData } from './services/api';
 import {
   Camera,
   MapPin,
@@ -1121,10 +1124,17 @@ export default function App() {
 
 
 
+
 function MapTab() {
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
+  const dataSourceRef = useRef(null);
+  const bubbleLayerRef = useRef(null);
+
   const [bluehandsShops, setBluehandsShops] = useState([]);
   const [bluehandsLoading, setBluehandsLoading] = useState(true);
   const [bluehandsError, setBluehandsError] = useState('');
+  const [mapError, setMapError] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedShopType, setSelectedShopType] = useState('all');
   const [selectedShop, setSelectedShop] = useState(null);
@@ -1132,6 +1142,7 @@ function MapTab() {
   const [expandedAddressIds, setExpandedAddressIds] = useState({});
   const [sortMode, setSortMode] = useState('distance');
   const [showBluehandsHelp, setShowBluehandsHelp] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
 
   const TEXT = {
     searchPlaceholder: "\uc8fc\uc18c \ub610\ub294 \uc9c0\uc5ed\uc744 \uc785\ub825\ud558\uc138\uc694",
@@ -1160,6 +1171,7 @@ function MapTab() {
     helpSpecialist: "\uc804\ubb38: \uc77c\ubc18 \uc810\uac80\uacfc \uacbd\uc815\ube44 \uc704\uc8fc\uc758 \uc9c0\uc5ed \uc815\ube44\uc18c",
     helpGeneral: "\uc885\ud569: \ubcf4\ub2e4 \ub113\uc740 \uc815\ube44 \ud56d\ubaa9\uc744 \ub2e4\ub8e8\ub294 \uc885\ud569 \uc815\ube44\uc18c",
     helpHitech: "\ud558\uc774\ud14c\ud06c: \uace0\ub09c\ub3c4 \uc9c4\ub2e8, \uc804\uc7a5, \ucca8\ub2e8 \uc2dc\uc2a4\ud15c \uc810\uac80\uc744 \uc9c0\uc6d0\ud558\ub294 \uc13c\ud130",
+    mapKeyMissing: "Azure Maps ?? ???? ?????. .env.local? VITE_AZURE_MAPS_KEY? ?????.",
   };
 
   const cityShortMap = {
@@ -1181,29 +1193,22 @@ function MapTab() {
     "\uacbd\uc0c1\ub0a8\ub3c4": "\uacbd\ub0a8",
     "\uc81c\uc8fc\ud2b9\ubcc4\uc790\uce58\ub3c4": "\uc81c\uc8fc",
   };
-  
-  const f = (small, big) => isBigFont ? big : small;
-
-  const resetDiy = () => {
-    setDiyStep(1); setSelectedBrand('');
-    setSelectedModel(''); setSelectedYear('');
-    setSelectedDiy(null);
-  };
-  const handleTabClick = (tabId) => {
-    if (tabId === 'find') {
-      setImage(null); setResult(null);
-      setShowPhotoGuide(false);
-    }
-    if (tabId === 'diy') resetDiy();
-    setActiveTab(tabId);
-  };
-  const goHome = () => handleTabClick('find');
 
   useEffect(() => {
     const loadBluehands = async () => {
       try {
-        const data = await fetchBluehandsData();
-        setBluehandsShops(data);
+        const response = await fetch('/data/bluehands_with_coords.json');
+
+        if (!response.ok) {
+          throw new Error(`bluehands_with_coords.json load failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const validData = Array.isArray(data)
+          ? data.filter((shop) => Number.isFinite(Number(shop.lat)) && Number.isFinite(Number(shop.lng)))
+          : [];
+
+        setBluehandsShops(validData);
       } catch (error) {
         console.error(error);
         setBluehandsError(error.message);
@@ -1213,6 +1218,85 @@ function MapTab() {
     };
 
     loadBluehands();
+  }, []);
+
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    const mapKey = import.meta.env.VITE_AZURE_MAPS_KEY;
+
+    if (!mapKey) {
+      setMapError(TEXT.mapKeyMissing);
+      return;
+    }
+
+    const map = new atlas.Map(mapContainerRef.current, {
+      center: [126.9780, 37.5665],
+      zoom: 11,
+      language: 'ko-KR',
+      view: 'Auto',
+      style: 'road',
+      authOptions: {
+        authType: 'subscriptionKey',
+        subscriptionKey: mapKey,
+      },
+    });
+
+    mapRef.current = map;
+
+    map.events.add('ready', () => {
+      const dataSource = new atlas.source.DataSource('bluehands-source');
+      dataSourceRef.current = dataSource;
+      map.sources.add(dataSource);
+
+      const bubbleLayer = new atlas.layer.BubbleLayer(dataSource, 'bluehands-bubbles', {
+        radius: 8,
+        color: [
+          'case',
+          ['==', ['get', 'type'], 'hitech'], '#f97316',
+          ['==', ['get', 'type'], 'specialist'], '#10b981',
+          '#2563eb'
+        ],
+        strokeColor: '#ffffff',
+        strokeWidth: 2,
+        opacity: 0.95,
+      });
+
+      bubbleLayerRef.current = bubbleLayer;
+      map.layers.add(bubbleLayer);
+
+      map.events.add('click', bubbleLayer, (event) => {
+        const shape = event.shapes?.[0];
+
+        if (!shape) return;
+
+        const properties = shape.getProperties ? shape.getProperties() : shape.properties;
+        const shopKey = properties?.shopKey;
+
+        if (!shopKey) return;
+
+        const matchedShop = bluehandsShops.find((shop) => getShopKey(shop) === shopKey);
+
+        if (matchedShop) {
+          setSelectedShop(matchedShop);
+        }
+      });
+
+      map.events.add('mouseenter', bubbleLayer, () => {
+        map.getCanvasContainer().style.cursor = 'pointer';
+      });
+
+      map.events.add('mouseleave', bubbleLayer, () => {
+        map.getCanvasContainer().style.cursor = 'grab';
+      });
+    });
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.dispose();
+        mapRef.current = null;
+      }
+    };
   }, []);
 
   const getTypeMeta = (type) => {
@@ -1266,6 +1350,28 @@ function MapTab() {
     return [shortCity, district, dong].filter(Boolean).join(' ');
   };
 
+  const getDistanceKm = (shop) => {
+    if (!userLocation || !shop.lat || !shop.lng) return null;
+
+    const toRad = (value) => (value * Math.PI) / 180;
+    const earthRadiusKm = 6371;
+
+    const dLat = toRad(Number(shop.lat) - userLocation.lat);
+    const dLng = toRad(Number(shop.lng) - userLocation.lng);
+
+    const lat1 = toRad(userLocation.lat);
+    const lat2 = toRad(Number(shop.lat));
+
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1) * Math.cos(lat2) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return earthRadiusKm * c;
+  };
+
   const filteredShops = useMemo(() => {
     const keyword = searchKeyword.trim().toLowerCase();
 
@@ -1282,36 +1388,97 @@ function MapTab() {
       return typeMatched && keywordMatched;
     });
 
-    if (sortMode === 'distance') {
+    if (sortMode === 'distance' && userLocation) {
       return [...result].sort((a, b) => {
-        const cityA = a.city || '';
-        const cityB = b.city || '';
-        const nameA = a.name || '';
-        const nameB = b.name || '';
-        return cityA.localeCompare(cityB, 'ko') || nameA.localeCompare(nameB, 'ko');
+        const distanceA = getDistanceKm(a) ?? Number.MAX_SAFE_INTEGER;
+        const distanceB = getDistanceKm(b) ?? Number.MAX_SAFE_INTEGER;
+        return distanceA - distanceB;
       });
     }
 
-    return result;
-  }, [bluehandsShops, searchKeyword, selectedShopType, sortMode]);
+    return [...result].sort((a, b) => {
+      const cityA = a.city || '';
+      const cityB = b.city || '';
+      const nameA = a.name || '';
+      const nameB = b.name || '';
+      return cityA.localeCompare(cityB, 'ko') || nameA.localeCompare(nameB, 'ko');
+    });
+  }, [bluehandsShops, searchKeyword, selectedShopType, sortMode, userLocation]);
 
   const visibleShops = filteredShops.slice(0, 50);
 
-  const makeExternalMapQuery = (shop, service) => {
-    const shopName = shop?.name || '';
-    const shopAddress = shop?.addr || '';
+  useEffect(() => {
+    if (!dataSourceRef.current) return;
 
-    // ???/???? ???+??? ???? ?? ?? ??? ? ??????.
-    // ??? ???+?? ??? ??? ? ?????.
-    if (service === 'kakao' || service === 'naver') {
-      return shopAddress || shopName;
+    const features = filteredShops.map((shop) => {
+      return new atlas.data.Feature(
+        new atlas.data.Point([Number(shop.lng), Number(shop.lat)]),
+        {
+          shopKey: getShopKey(shop),
+          name: shop.name,
+          type: shop.type,
+          addr: shop.addr,
+        }
+      );
+    });
+
+    dataSourceRef.current.clear();
+    dataSourceRef.current.add(features);
+  }, [filteredShops]);
+
+  const moveMapToShop = (shop, zoom = 15) => {
+    if (!mapRef.current || !shop?.lat || !shop?.lng) return;
+
+    mapRef.current.setCamera({
+      center: [Number(shop.lng), Number(shop.lat)],
+      zoom,
+      duration: 600,
+      type: 'ease',
+    });
+  };
+
+  const handleSelectShop = (shop) => {
+    moveMapToShop(shop, 15);
+    setSelectedShop(shop);
+  };
+
+  const moveToUserLocation = () => {
+    if (!navigator.geolocation) {
+      setMapError("\uc774 \ube0c\ub77c\uc6b0\uc800\uc5d0\uc11c\ub294 \ud604\uc7ac \uc704\uce58\ub97c \uc9c0\uc6d0\ud558\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.");
+      return;
     }
 
-    return `${shopName} ${shopAddress}`.trim();
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const nextLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+
+        setUserLocation(nextLocation);
+
+        if (mapRef.current) {
+          mapRef.current.setCamera({
+            center: [nextLocation.lng, nextLocation.lat],
+            zoom: 13,
+            duration: 600,
+            type: 'ease',
+          });
+        }
+      },
+      () => {
+        setMapError("\ud604\uc7ac \uc704\uce58 \uad8c\ud55c\uc744 \ud5c8\uc6a9\ud574\uc57c \uac70\ub9ac\uc21c \uc815\ub82c\uc744 \uc0ac\uc6a9\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
   };
 
   const openMapSearch = (shop, service) => {
-    const query = encodeURIComponent(makeExternalMapQuery(shop, service));
+    const query = encodeURIComponent(`${shop.name} ${shop.addr}`);
 
     const urlMap = {
       naver: `https://map.naver.com/p/search/${query}`,
@@ -1325,22 +1492,26 @@ function MapTab() {
   return (
     <div className="h-full flex flex-col bg-slate-50">
       <div className="relative flex-1 min-h-[320px] bg-blue-50">
-        <iframe
-          title="map"
-          src="https://maps.google.com/maps?q=37.5665,126.9780&z=12&output=embed&hl=ko"
-          className="w-full h-full border-none"
-          loading="lazy"
-        />
+        <div ref={mapContainerRef} className="absolute inset-0" />
+
+        {(mapError || bluehandsError) && (
+          <div className="absolute left-5 right-5 bottom-5 z-30 rounded-2xl bg-white/95 border border-red-100 p-4 shadow-xl">
+            <p className="text-sm font-bold text-red-600">
+              {mapError || bluehandsError}
+            </p>
+          </div>
+        )}
 
         <button
           type="button"
-          className="absolute right-5 top-5 z-20 w-14 h-14 rounded-2xl bg-white shadow-xl border border-slate-100 flex items-center justify-center"
+          onClick={moveToUserLocation}
+          className="absolute right-5 top-5 z-30 w-14 h-14 rounded-2xl bg-white shadow-xl border border-slate-100 flex items-center justify-center"
           aria-label="current location"
         >
           <LocateFixed className="w-7 h-7 text-blue-600" />
         </button>
 
-        <div className="absolute left-5 right-5 top-5 z-20">
+        <div className="absolute left-5 right-20 top-5 z-30">
           <div className="flex items-center bg-white/90 backdrop-blur-md border border-white/70 rounded-full px-4 py-3 shadow-xl">
             <Search className="w-6 h-6 text-slate-400 mr-2 shrink-0" />
 
@@ -1396,10 +1567,11 @@ function MapTab() {
               key={item.id}
               type="button"
               onClick={() => setSelectedShopType(item.id)}
-              className={`px-4 py-2 rounded-2xl text-sm font-black whitespace-nowrap border-2 transition-all ${selectedShopType === item.id
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white text-slate-500 border-slate-100'
-                }`}
+              className={`px-4 py-2 rounded-2xl text-sm font-black whitespace-nowrap border-2 transition-all ${
+                selectedShopType === item.id
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-slate-500 border-slate-100'
+              }`}
             >
               {item.label}
             </button>
@@ -1407,11 +1579,17 @@ function MapTab() {
 
           <button
             type="button"
-            onClick={() => setSortMode('distance')}
-            className={`px-4 py-2 rounded-2xl text-sm font-black whitespace-nowrap border-2 transition-all ${sortMode === 'distance'
-              ? 'bg-slate-900 text-white border-slate-900'
-              : 'bg-white text-slate-500 border-slate-100'
-              }`}
+            onClick={() => {
+              setSortMode('distance');
+              if (!userLocation) {
+                moveToUserLocation();
+              }
+            }}
+            className={`px-4 py-2 rounded-2xl text-sm font-black whitespace-nowrap border-2 transition-all ${
+              sortMode === 'distance'
+                ? 'bg-slate-900 text-white border-slate-900'
+                : 'bg-white text-slate-500 border-slate-100'
+            }`}
           >
             {TEXT.distanceSort}
           </button>
@@ -1457,13 +1635,6 @@ function MapTab() {
             </div>
           )}
 
-          {bluehandsError && (
-            <div className="p-5 text-center bg-red-50 rounded-2xl border-2 border-red-100">
-              <p className="font-black text-red-600">{TEXT.loadError}</p>
-              <p className="text-xs text-red-400 mt-1">{bluehandsError}</p>
-            </div>
-          )}
-
           {!bluehandsLoading && !bluehandsError && visibleShops.length === 0 && (
             <div className="p-5 text-center bg-white rounded-2xl border-2 border-slate-100">
               <p className="font-black text-slate-700">{TEXT.noResult}</p>
@@ -1474,18 +1645,19 @@ function MapTab() {
             const meta = getTypeMeta(shop.type);
             const shopKey = getShopKey(shop);
             const isAddressOpen = Boolean(expandedAddressIds[shopKey]);
+            const distanceKm = getDistanceKm(shop);
 
             return (
               <div
                 key={shopKey}
-                onClick={() => setSelectedShop(shop)}
+                onClick={() => handleSelectShop(shop)}
                 className="p-5 rounded-3xl border-2 border-slate-100 bg-white cursor-pointer active:scale-[0.99] transition-transform shadow-sm"
               >
                 <div className="flex items-start gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2 flex-wrap min-w-0">
-                        <h4 className="font-black text-slate-900 text-base leading-tight">
+                        <h4 className="font-black text-slate-900 text-lg leading-tight">
                           {shop.name}
                         </h4>
 
@@ -1522,6 +1694,12 @@ function MapTab() {
                       {shop.phone && (
                         <p className="text-slate-400 text-xs font-bold">
                           {shop.phone}
+                        </p>
+                      )}
+
+                      {distanceKm !== null && (
+                        <p className="text-blue-600 text-xs font-black">
+                          {distanceKm.toFixed(1)}km
                         </p>
                       )}
                     </div>
