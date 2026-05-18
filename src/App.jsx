@@ -232,7 +232,7 @@ const SHOPS = [
 ];
 
 const DIY_ITEMS = [
-  { id: 'washer', name: '워셔액 보충', level: '초급', pos: { top: '50%', left: '8%' }, desc: '보닛을 열고 파란색 뚜껑을 찾아 워셔액을 가득 채우세요.', image: 'https://cdn.consumuch.com/news/photo/201708/30298_29268_1038.png' },
+  { id: 'washer', name: '워셔액 보충', level: '초급', pos: { top: '50%', left: '-1%' }, desc: '보닛을 열고 파란색 뚜껑을 찾아 워셔액을 가득 채우세요.', image: 'https://cdn.consumuch.com/news/photo/201708/30298_29268_1038.png' },
   { id: 'filter', name: '에어컨 필터 교체', level: '초급', desc: '조수석 글로브 박스를 열고 안쪽 덮개를 제거해 필터를 교체하세요.', image: 'https://gear-up3.com/wp-content/uploads/2024/03/%EC%8B%BC%ED%83%80%ED%8E%98-TM-%EC%97%90%EC%96%B4%EC%BB%A8-%ED%95%84%ED%84%B0-%EA%B5%90%EC%B2%B4-%EB%B0%A9%EB%B2%95-1024x705.png' },
   { id: 'coolant', name: '냉각수 보충', level: '초급', pos: { top: '63%', left: '16%' }, desc: '엔진이 식은 후 냉각수 보조 탱크의 MAX 선까지 보충하세요.', image: 'https://scontent-ssn1-1.cdninstagram.com/v/t51.82787-15/671834424_18407622619199826_1912107646939343223_n.jpg?stp=dst-jpegr_e35_tt6&_nc_cat=100&ig_cache_key=Mzg4MTY2ODI5NzAxNjU1NDIyMg%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0ueHBpZHMuMTQ0MC5oZHIucmVndWxhcl9waG90by5DMyJ9&_nc_ohc=iIPtXgCQ9ggQ7kNvwESnavb&_nc_oc=AdorDkzwKf02hy0E3dzXaW6_7LXNbIoFYNDRHE24guWCMvx1RhNcykZC6i5Vv-p8xj8&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent-ssn1-1.cdninstagram.com&_nc_gid=Ek2H3LYkbJk7a6t6vZBdsg&_nc_ss=7a22e&oh=00_Af4O1o7bjTdDnT-WB2JfpdqQlCHblcuPgzicyWv-cS1vrw&oe=6A1035C9' },
   { id: 'headlight', name: '전조등 교체', level: '중급', pos: { top: '20%', left: '15%' }, desc: '엔진룸 안쪽 전조등 소켓을 돌려 빼고 새 전구로 교체하세요.' },
