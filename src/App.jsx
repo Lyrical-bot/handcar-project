@@ -22,7 +22,14 @@ import {
   Lightbulb,
   ChevronDown,
   LocateFixed,
-  Droplet
+  Droplet,
+  Type,
+  CheckCircle2,
+  Clock,
+  Mail,
+  MessageCircle,
+  User,
+  LogIn
 } from 'lucide-react';
 
 const AI_PROXY_URL = import.meta.env.VITE_AI_PROXY_URL;
@@ -249,6 +256,7 @@ export default function App() {
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
+  const [isBigFont, setIsBigFont] = useState(false);
   const [collapsedLevels, setCollapsedLevels] = useState({ '중급': false, '고급': false });
   const toggleLevel = (level) => {
     setCollapsedLevels(prev => ({ ...prev, [level]: !prev[level] }));
@@ -289,6 +297,23 @@ export default function App() {
   ]);
   const [newNote, setNewNote] = useState('');
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
+  
+  const f = (small, big) => isBigFont ? big : small;
+
+  const resetDiy = () => {
+    setDiyStep(1); setSelectedBrand('');
+    setSelectedModel(''); setSelectedYear('');
+    setSelectedDiy(null);
+  };
+  const handleTabClick = (tabId) => {
+    if (tabId === 'find') {
+      setImage(null); setResult(null);
+      setShowPhotoGuide(false);
+    }
+    if (tabId === 'diy') resetDiy();
+    setActiveTab(tabId);
+  };
+  const goHome = () => handleTabClick('find');
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 3000);
@@ -426,9 +451,9 @@ export default function App() {
         resultData = makeLocalFastApiResult(apiResult);
       }
 
-      setResult(resultData);
+      setResult(resultData);{
 
-      if (resultData.status !== 'normal') {
+       
         const newRecord = {
           id: Date.now(),
           date: new Date().toLocaleDateString(),
@@ -587,7 +612,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 font-sans text-slate-900 max-w-md mx-auto shadow-2xl relative border-x border-slate-200">
+    <div className={`flex flex-col h-screen bg-slate-50 font-sans text-slate-900 max-w-md mx-auto shadow-2xl relative border-x border-slate-200 ${isBigFont ? 'text-xl' : 'text-base'}`}>
       {/*
         계기판 촬영 가이드 오버레이
         - 메인 화면의 "사진 촬영 및 선택" 버튼을 눌렀을 때 showPhotoGuide가 true가 됩니다.
@@ -609,13 +634,22 @@ export default function App() {
 
       {/* 상단바 */}
       <header className="bg-white px-4 py-4 flex items-center justify-between border-b sticky top-0 z-40">
-        <button onClick={() => { setImage(null); setResult(null); setActiveTab('find'); }} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-          <Home className="w-6 h-6 text-blue-600" />
+        <button onClick={() => handleTabClick('find')} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+          <Home className={`text-blue-600 ${isBigFont ? 'w-8 h-8' : 'w-6 h-6'}`} />
         </button>
-        <h1 className="text-xl font-black text-blue-600 tracking-tighter">HANDS CAR</h1>
-        <button onClick={() => setShowLogin(true)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-          <Settings className="w-6 h-6 text-slate-400" />
-        </button>
+        <h1 className={`font-black text-blue-600 tracking-tighter ${isBigFont ? 'text-2xl' : 'text-xl'}`}>HANDS CAR</h1>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setIsBigFont(!isBigFont)}
+            className={`p-2 rounded-lg transition-colors ${isBigFont ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}
+            title="글자 크기 조절"
+          >
+            <Type className={isBigFont ? 'w-6 h-6' : 'w-5 h-5'} />
+          </button>
+          <button onClick={() => setShowLogin(true)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+            <Settings className={`text-slate-400 ${isBigFont ? 'w-8 h-8' : 'w-6 h-6'}`} />
+          </button>
+        </div>
       </header>
 
       {/* 메인 컨텐츠 영역 */}
@@ -624,16 +658,32 @@ export default function App() {
           <div className="p-6 space-y-6">
             {!image ? (
               <div className="space-y-8 py-10 text-center">
-                <div className="relative inline-block">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (hideGuideForWeek) {
+                      document.getElementById('dashboard-photo-input')?.click();
+                    } else {
+                      setShowPhotoGuide(true);
+                    }
+                  }}
+                  className="relative inline-block cursor-pointer active:scale-95 transition-transform"
+                >
                   <div className="absolute -inset-4 bg-blue-100 rounded-full animate-pulse"></div>
-                  <div className="relative bg-white p-8 rounded-full shadow-lg">
-                    <Camera className="w-16 h-16 text-blue-600" />
+                  <div className="relative bg-white p-8 rounded-full shadow-lg hover:bg-blue-50">
+                    <Camera className={`text-blue-600 ${f('w-16 h-16','w-24 h-24')}`} />
                   </div>
-                </div>
+                </button>
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-black">경고등을 찍어주세요</h2>
-                  <p className="text-slate-500 font-medium">AI가 실시간으로 분석해드립니다</p>
+                  <h2 className={`font-black ${f('text-2xl','text-3xl')}`}>경고등을 찍어주세요</h2>
+                  <p className={`text-slate-500 font-medium ${f('text-base','text-xl')}`}>AI가 실시간으로 분석해드립니다</p>
                 </div>
+
+                <div className="w-full bg-amber-50 border border-amber-200 p-5 rounded-3xl flex items-start gap-3">
+                  <AlertTriangle className="text-amber-500 flex-shrink-0 mt-0.5" size={22} />
+                  <p className={`text-amber-800 leading-relaxed ${f('text-xs', 'text-sm')}`}>자동차관리법 제65조에 따라 필터, 워셔액, 냉각수 등 소모품 자가 정비가 가능합니다. 그 외 부품은 반드시 허가 업체에서 정비하세요.</p>
+                </div>
+
                 <>
                   {/*
                     기존에는 이 영역이 label + input 구조라서 버튼을 누르면 바로 파일 선택창이 열렸습니다.
@@ -649,7 +699,7 @@ export default function App() {
                         setShowPhotoGuide(true);
                       }
                     }}
-                    className="block w-full py-5 bg-blue-600 text-white rounded-3xl font-bold shadow-xl shadow-blue-200 cursor-pointer active:scale-95 transition-transform text-lg"
+                    className={`block w-full py-5 bg-blue-600 text-white rounded-3xl font-bold shadow-xl shadow-blue-200 cursor-pointer active:scale-95 transition-transform ${f('text-lg','text-2xl')}`}
                   >
                     사진 촬영 및 선택
                   </button>
@@ -768,8 +818,8 @@ export default function App() {
                       onClick={() => { setSelectedBrand(brand.name); setDiyStep(2); }}
                       className="p-4 bg-white rounded-2xl border-2 border-slate-100 flex flex-col items-center hover:border-blue-500 transition-all"
                     >
-                      <img src={brand.logo} className="w-12 h-12 object-contain mb-2" alt={brand.name} />
-                      <span className="text-xs font-bold">{brand.name}</span>
+                      <img src={brand.logo} className={`object-contain mb-2 ${f('w-12 h-12','w-16 h-16')}`} alt={brand.name} />
+                      <span className={`font-bold ${f('text-xs','text-sm')}`}>{brand.name}</span>
                     </button>
                   ))}
                 </div>
@@ -967,11 +1017,11 @@ export default function App() {
         ].map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => handleTabClick(tab.id)}
             className={`flex flex-col items-center gap-1 min-w-[60px] transition-all ${activeTab === tab.id ? 'text-blue-600 scale-110' : 'text-slate-400'}`}
           >
-            <tab.icon className={`w-6 h-6 ${activeTab === tab.id ? 'fill-blue-600/10' : ''}`} />
-            <span className="text-[10px] font-black tracking-tighter">{tab.label}</span>
+            <tab.icon className={`${f('w-6 h-6','w-8 h-8')} ${activeTab === tab.id ? 'fill-blue-600/10' : ''}`} />
+            <span className={`font-black tracking-tighter ${f('text-[10px]','text-sm')}`}>{tab.label}</span>
           </button>
         ))}
       </nav>
@@ -1131,6 +1181,23 @@ function MapTab() {
     "\uacbd\uc0c1\ub0a8\ub3c4": "\uacbd\ub0a8",
     "\uc81c\uc8fc\ud2b9\ubcc4\uc790\uce58\ub3c4": "\uc81c\uc8fc",
   };
+  
+  const f = (small, big) => isBigFont ? big : small;
+
+  const resetDiy = () => {
+    setDiyStep(1); setSelectedBrand('');
+    setSelectedModel(''); setSelectedYear('');
+    setSelectedDiy(null);
+  };
+  const handleTabClick = (tabId) => {
+    if (tabId === 'find') {
+      setImage(null); setResult(null);
+      setShowPhotoGuide(false);
+    }
+    if (tabId === 'diy') resetDiy();
+    setActiveTab(tabId);
+  };
+  const goHome = () => handleTabClick('find');
 
   useEffect(() => {
     const loadBluehands = async () => {
@@ -1418,7 +1485,7 @@ function MapTab() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2 flex-wrap min-w-0">
-                        <h4 className="font-black text-slate-900 text-lg leading-tight">
+                        <h4 className="font-black text-slate-900 text-base leading-tight">
                           {shop.name}
                         </h4>
 
