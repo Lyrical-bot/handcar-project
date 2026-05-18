@@ -297,6 +297,7 @@ export default function App() {
   ]);
   const [newNote, setNewNote] = useState('');
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
+  
   const f = (small, big) => isBigFont ? big : small;
 
   const resetDiy = () => {
@@ -670,19 +671,19 @@ export default function App() {
                 >
                   <div className="absolute -inset-4 bg-blue-100 rounded-full animate-pulse"></div>
                   <div className="relative bg-white p-8 rounded-full shadow-lg hover:bg-blue-50">
-                    <Camera className="w-16 h-16 text-blue-600" />
+                    <Camera className={`text-blue-600 ${f('w-16 h-16','w-24 h-24')}`} />
                   </div>
                 </button>
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-black">경고등을 찍어주세요</h2>
-                  <p className="text-slate-500 font-medium">AI가 실시간으로 분석해드립니다</p>
+                  <h2 className={`font-black ${f('text-2xl','text-3xl')}`}>경고등을 찍어주세요</h2>
+                  <p className={`text-slate-500 font-medium ${f('text-base','text-xl')}`}>AI가 실시간으로 분석해드립니다</p>
                 </div>
 
                 <div className="w-full bg-amber-50 border border-amber-200 p-5 rounded-3xl flex items-start gap-3">
                   <AlertTriangle className="text-amber-500 flex-shrink-0 mt-0.5" size={22} />
                   <p className={`text-amber-800 leading-relaxed ${f('text-xs', 'text-sm')}`}>자동차관리법 제65조에 따라 필터, 워셔액, 냉각수 등 소모품 자가 정비가 가능합니다. 그 외 부품은 반드시 허가 업체에서 정비하세요.</p>
                 </div>
-                
+
                 <>
                   {/*
                     기존에는 이 영역이 label + input 구조라서 버튼을 누르면 바로 파일 선택창이 열렸습니다.
@@ -698,7 +699,7 @@ export default function App() {
                         setShowPhotoGuide(true);
                       }
                     }}
-                    className="block w-full py-5 bg-blue-600 text-white rounded-3xl font-bold shadow-xl shadow-blue-200 cursor-pointer active:scale-95 transition-transform text-lg"
+                    className={`block w-full py-5 bg-blue-600 text-white rounded-3xl font-bold shadow-xl shadow-blue-200 cursor-pointer active:scale-95 transition-transform ${f('text-lg','text-2xl')}`}
                   >
                     사진 촬영 및 선택
                   </button>
@@ -817,8 +818,8 @@ export default function App() {
                       onClick={() => { setSelectedBrand(brand.name); setDiyStep(2); }}
                       className="p-4 bg-white rounded-2xl border-2 border-slate-100 flex flex-col items-center hover:border-blue-500 transition-all"
                     >
-                      <img src={brand.logo} className="w-12 h-12 object-contain mb-2" alt={brand.name} />
-                      <span className="text-xs font-bold">{brand.name}</span>
+                      <img src={brand.logo} className={`object-contain mb-2 ${f('w-12 h-12','w-16 h-16')}`} alt={brand.name} />
+                      <span className={`font-bold ${f('text-xs','text-sm')}`}>{brand.name}</span>
                     </button>
                   ))}
                 </div>
@@ -1019,8 +1020,8 @@ export default function App() {
             onClick={() => handleTabClick(tab.id)}
             className={`flex flex-col items-center gap-1 min-w-[60px] transition-all ${activeTab === tab.id ? 'text-blue-600 scale-110' : 'text-slate-400'}`}
           >
-            <tab.icon className={`w-6 h-6 ${activeTab === tab.id ? 'fill-blue-600/10' : ''}`} />
-            <span className="text-[10px] font-black tracking-tighter">{tab.label}</span>
+            <tab.icon className={`${f('w-6 h-6','w-8 h-8')} ${activeTab === tab.id ? 'fill-blue-600/10' : ''}`} />
+            <span className={`font-black tracking-tighter ${f('text-[10px]','text-sm')}`}>{tab.label}</span>
           </button>
         ))}
       </nav>
@@ -1484,7 +1485,7 @@ function MapTab() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2 flex-wrap min-w-0">
-                        <h4 className="font-black text-slate-900 text-lg leading-tight">
+                        <h4 className="font-black text-slate-900 text-base leading-tight">
                           {shop.name}
                         </h4>
 
