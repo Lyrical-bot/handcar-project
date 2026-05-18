@@ -31,7 +31,6 @@ async function geocodeAddress(address) {
   url.searchParams.set('api-version', '2023-06-01');
   url.searchParams.set('subscription-key', AZURE_MAPS_KEY);
   url.searchParams.set('query', address.trim());
-  url.searchParams.set('countryRegion', 'KR');
   url.searchParams.set('top', '1');
 
   const response = await fetch(url.toString());
