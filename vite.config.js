@@ -28,7 +28,7 @@ export default defineConfig(({ command }) => ({
         icons: [
           {
             src: 'favicon.png',
-            sizes: '170x169',
+            sizes: '192x192',
             type: 'image/png'
           },
           {
