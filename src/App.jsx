@@ -243,13 +243,14 @@ const SHOPS = [
 ];
 
 const DIY_ITEMS = [
-  { id: 'washer', name: '워셔액 보충', level: '초급', pos: { top: '30%', left: '25%' }, desc: '보닛을 열고 파란색 뚜껑을 찾아 워셔액을 가득 채우세요.' },
-  { id: 'filter', name: '에어컨 필터 교체', level: '초급', pos: { top: '50%', left: '70%' }, desc: '조수석 글로브 박스를 열고 안쪽 덮개를 제거해 필터를 교체하세요.' },
-  { id: 'coolant', name: '냉각수 보충', level: '초급', pos: { top: '25%', left: '65%' }, desc: '엔진이 식은 후 냉각수 보조 탱크의 MAX 선까지 보충하세요.' },
-  { id: 'headlight', name: '전조등 교체', level: '중급', pos: { top: '20%', left: '15%' }, desc: '엔진룸 안쪽 전조등 소켓을 돌려 빼고 새 전구로 교체하세요.' },
-  { id: 'taillight', name: '후미등 교체', level: '중급', pos: { top: '85%', left: '15%' }, desc: '트렁크 안쪽 커버를 열고 소켓을 분리해 전구를 교체하세요.' },
-  { id: 'brake_light', name: '브레이크등 교체', level: '고급', pos: { top: '82%', left: '30%' }, desc: '후미등 뭉치를 분리하여 브레이크 전용 전구를 교체하세요.' },
-  { id: 'plate_light', name: '번호판등 교체', level: '고급', pos: { top: '88%', left: '50%' }, desc: '드라이버로 번호판 상단 커버를 열고 작은 전구를 교체하세요.' },
+ //     ↓ 여기 img: '주소' 에 원하는 사진 인터넷 주소를 붙여넣으면 돼요!
+  { id: 'washer',      name: '워셔액 보충',     level: '초급', img: '', pos: { top: '30%', left: '25%' }, desc: '보닛을 열고 파란색 뚜껑을 찾아 워셔액을 가득 채우세요.' },
+  { id: 'filter',      name: '에어컨 필터 교체', level: '초급', img: '', pos: { top: '50%', left: '70%' }, desc: '조수석 글로브 박스를 열고 안쪽 덮개를 제거해 필터를 교체하세요.' },
+  { id: 'coolant',     name: '냉각수 보충',     level: '초급', img: '', pos: { top: '25%', left: '65%' }, desc: '엔진이 식은 후 냉각수 보조 탱크의 MAX 선까지 보충하세요.' },
+  { id: 'headlight',   name: '전조등 교체',     level: '중급', img: '', pos: { top: '20%', left: '15%' }, desc: '엔진룸 안쪽 전조등 소켓을 돌려 빼고 새 전구로 교체하세요.' },
+  { id: 'taillight',   name: '후미등 교체',     level: '중급', img: '', pos: { top: '85%', left: '15%' }, desc: '트렁크 안쪽 커버를 열고 소켓을 분리해 전구를 교체하세요.' },
+  { id: 'brake_light', name: '브레이크등 교체',  level: '고급', img: '', pos: { top: '82%', left: '30%' }, desc: '후미등 뭉치를 분리하여 브레이크 전용 전구를 교체하세요.' },
+  { id: 'plate_light', name: '번호판등 교체',   level: '고급', img: '', pos: { top: '88%', left: '50%' }, desc: '드라이버로 번호판 상단 커버를 열고 작은 전구를 교체하세요.' },
 ];
 
 export default function App() {
