@@ -926,9 +926,19 @@ export default function App() {
             {diyStep === 4 && selectedDiy && (
               <div className="space-y-6 animate-in slide-in-from-right-4">
                 <div className="relative aspect-video bg-slate-200 rounded-3xl overflow-hidden shadow-inner">
-                  <div className="w-full h-full flex items-center justify-center text-slate-400 italic">
-                    [차량 정비 위치 이미지 - {selectedDiy.name}]
-                  </div>
+                  {/* 사진이 있으면 사진을 보여주고, 없으면 회색 빈 화면을 보여줘요 */}
+                  {selectedDiy.img ? (
+                    <img
+                      src={selectedDiy.img}
+                      alt={selectedDiy.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400 italic text-sm">
+                      사진을 추가하려면 DIY_ITEMS의 img: '' 안에 주소를 넣으세요
+                    </div>
+                  )}
+                  {/* 빨간 점 핀 — 사진 위에 표시돼요 */}
                   <div
                     className="absolute z-10 animate-bounce"
                     style={{ top: selectedDiy.pos.top, left: selectedDiy.pos.left }}
